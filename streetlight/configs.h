@@ -32,4 +32,14 @@ struct server_cfg {
 struct server_cfg *configs_get_server(void);
 
 
+struct lamp_cfg {
+	unsigned lamps[8];
+};
+
+/*
+ * Get server configs
+ */
+struct lamp_cfg *configs_get_lamps(void);
+
+
 #endif

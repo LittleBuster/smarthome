@@ -2,6 +2,7 @@
 #define __STLIGHT_H__
 
 #include <stdbool.h>
+#include <stdint.h>
 
 enum {
 	SWITCH_ON,
@@ -11,16 +12,16 @@ enum {
 };
 
 struct command {
-	char code;
-	char lamp;
+	uint8_t code;
+	unsigned lamp;
 };
 
 struct switch_answ {
-	char code;
+	uint8_t code;
 };
 
 struct status_data {
-	char lamps[8]; 
+	unsigned lamps[8]; 
 };
 
 

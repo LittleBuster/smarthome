@@ -15,12 +15,14 @@
 #include "stlight.h"
 #include <stdio.h>
 #include <string.h>
+#include <wiringPi.h>
 
 
 int main(void)
 {
 	uint8_t ret_val;
 
+	wiringPiSetup();
 	if (!log_set_path("/var/log/light.log")) {
 		puts("Fail setting log path. Path is to long.");
 		return -1;

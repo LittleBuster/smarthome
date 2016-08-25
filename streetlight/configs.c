@@ -12,6 +12,7 @@ enum {
 
 static struct {
     struct server_cfg sc;
+    struct lamp_cfg lc;
 } cfg;
 
 
@@ -120,6 +121,12 @@ uint8_t configs_load(const char *filename)
         fclose(file);
         return CFG_PARSE_ERR;
     }
+    for (size_t i = 0; i < 8; i++) {
+    	if (!configs_read_unsigned(file, &cfg.lc.lamps[i])) {
+        	fclose(file);
+	        return CFG_PARSE_ERR;
+    	}
+    }
     fclose(file);
     return CFG_OK;
 }
@@ -127,4 +134,9 @@ uint8_t configs_load(const char *filename)
 struct server_cfg *configs_get_server(void)
 {
     return &cfg.sc;
+}
+
+struct lamp_cfg *configs_get_lamps(void)
+{
+    return &cfg.lc;
 }
