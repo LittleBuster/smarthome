@@ -23,7 +23,6 @@ enum {
 
 static struct {
     struct server_cfg sc;
-    struct lamp_cfg lc;
 } cfg;
 
 
@@ -145,9 +144,4 @@ uint8_t configs_load(const char *filename)
 struct server_cfg *configs_get_server(void)
 {
     return &cfg.sc;
-}
-
-struct lamp_cfg *configs_get_lamps(void)
-{
-    return &cfg.lc;
 }

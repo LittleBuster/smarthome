@@ -23,7 +23,7 @@ int main(void)
 	uint8_t ret_val;
 
 	wiringPiSetup();
-	if (!log_set_path("/var/log/light.log")) {
+	if (!log_set_path("/var/log/stlight.log")) {
 		puts("Fail setting log path. Path is to long.");
 		return -1;
 	}
@@ -45,9 +45,5 @@ int main(void)
 		log_local(msg, LOG_ERROR);
 		return -1;
 	}
-	if (!stlight_start()) {
-		log_local("Fail starting meteo server.", LOG_ERROR);
-		return -1;
-	}
-	return 0;
+	return stlight_start();
 }
