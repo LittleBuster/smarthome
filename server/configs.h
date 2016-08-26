@@ -16,12 +16,6 @@
 #include <stdint.h>
 
 
-enum error_codes {
-	CFG_FILE_NOT_FOUND,
-	CFG_PARSE_ERR,
-	CFG_OK
-};
-
 /**
  * Loading configs from file to RAM
  * @filename: name of configs file

@@ -16,6 +16,13 @@
 #include <string.h>
 
 
+enum error_codes {
+    CFG_FILE_NOT_FOUND,
+    CFG_PARSE_ERR,
+    CFG_OK
+};
+
+
 enum {
 	POS_COMMENT = -2,
 	POS_NOT_FOUND = -1
@@ -130,12 +137,6 @@ uint8_t configs_load(const char *filename)
     if (!configs_read_unsigned(file, &cfg.sc.max_users)) {
         fclose(file);
         return CFG_PARSE_ERR;
-    }
-    for (size_t i = 0; i < 8; i++) {
-    	if (!configs_read_unsigned(file, &cfg.lc.lamps[i])) {
-        	fclose(file);
-	        return CFG_PARSE_ERR;
-    	}
     }
     fclose(file);
     return CFG_OK;

@@ -25,8 +25,30 @@ static struct {
 } web;
 
 
+static void get(const char *data, char *out)
+{
+	while (*data) {
+		if (*data == '\n')
+			break;
+
+		*out = *data;
+		data++;
+		out++;
+	}
+	*out = '\0';
+}
+
 static void new_session(struct tcp_client *client, void *data)
 {
+	char page[1024];
+	char get_req[255];
+
+	if (!tcp_client_recv(client, page, 1024)) {
+		log_local("Fail receiving GET request.", LOG_ERROR);
+		return;
+	}
+	get(data, get_req);
+	puts(get_req);
 }
 
 static void accept_error(void *data)
@@ -37,7 +59,7 @@ static void accept_error(void *data)
 }
 
 
-bool web_start(void)
+bool web_server_start(void)
 {
 	struct server_cfg *sc = configs_get_server();
 

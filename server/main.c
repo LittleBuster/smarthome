@@ -11,8 +11,7 @@
 
 #include "log.h"
 #include "configs.h"
-#include "stlight.h"
-#include "stlight.h"
+#include "webserver.h"
 #include <stdio.h>
 #include <string.h>
 #include <smarthome/stlight.h>
