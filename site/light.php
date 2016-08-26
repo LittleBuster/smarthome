@@ -5,7 +5,7 @@
 			<?php
 				function switch_off($lamp) {
 					ini_set("allow_url_fopen", 1);
-					$json = file_get_contents('http://10.8.0.6:8080/stlight?switch_off=$lamp');
+					$json = file_get_contents("http://10.8.0.6:8080/stlight?switch_off=$lamp");
 					$obj = json_decode($json);
 	
 					if ($obj->result == 'ok')
@@ -15,7 +15,7 @@
 				}
 				function switch_on($lamp) {
 					ini_set("allow_url_fopen", 1);
-					$json = file_get_contents('http://10.8.0.6:8080/stlight?switch_on=$lamp');
+					$json = file_get_contents("http://10.8.0.6:8080/stlight?switch_on=$lamp");
 					$obj = json_decode($json);
 	
 					if ($obj->result == 'ok')
@@ -30,10 +30,10 @@
 			<input type=submit value="Отключить" name="left_off" />
 			<?php
 				if (isset($_POST['left_off']))
-					switch_off(1);
+					switch_off(0);
 
 				if (isset($_POST['left_on']))
-					switch_on(1);
+					switch_on(0);
 			?>
 			<br>
 			<br>
@@ -42,10 +42,10 @@
 			<input type=submit value="Отключить" name="center_off" />
 			<?php
 				if (isset($_POST['center_off']))
-					switch_off(2);
+					switch_off(1);
 
 				if (isset($_POST['center_on']))
-					switch_on(2);
+					switch_on(1);
 			?>
 			<br>
 			<br>
@@ -54,10 +54,10 @@
 			<input type=submit value="Отключить" name="main_off" />
 			<?php
 				if (isset($_POST['main_off']))
-					switch_off(3);
+					switch_off(2);
 
 				if (isset($_POST['main_on']))
-					switch_on(3);
+					switch_on(2);
 			?>
 			<br>
 			<br>
@@ -66,10 +66,10 @@
 			<input type=submit value="Отключить" name="exit_off" />
 			<?php
 				if (isset($_POST['exit_off']))
-					switch_off(4);
+					switch_off(3);
 
 				if (isset($_POST['exit_on']))
-					switch_on(4);
+					switch_on(3);
 			?>
 			<br>
 			<br>
@@ -78,10 +78,10 @@
 			<input type=submit value="Отключить" name="kal_off" />
 			<?php
 				if (isset($_POST['kal_off']))
-					switch_off(5);
+					switch_off(4);
 
 				if (isset($_POST['kal_on']))
-					switch_on(5);
+					switch_on(4);
 			?>
 			<br>
 			<br>
@@ -90,10 +90,10 @@
 			<input type=submit value="Отключить" name="car_off" />
 			<?php
 				if (isset($_POST['car_off']))
-					switch_off(6);
+					switch_off(5);
 
 				if (isset($_POST['car_on']))
-					switch_on(6);
+					switch_on(5);
 			?>
 			<br>
 			<br>
@@ -102,10 +102,10 @@
 			<input type=submit value="Отключить" name="bath_off" />
 			<?php
 				if (isset($_POST['bath_off']))
-					switch_off(7);
+					switch_off(6);
 
 				if (isset($_POST['bath_on']))
-					switch_on(7);
+					switch_on(6);
 			?>
 			<br>
 			<br>
@@ -114,11 +114,12 @@
 			<input type=submit value="Отключить" name="toilet_off" />
 			<?php
 				if (isset($_POST['toilet_off']))
-					switch_off(8);
+					switch_off(7);
 
 				if (isset($_POST['toilet_on']))
-					switch_on(8);
+					switch_on(7);
 			?>
+		<input type=text />
 		</form>
 	</body>
 </html>
