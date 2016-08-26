@@ -52,7 +52,7 @@ bool tcp_client_recv(struct tcp_client *restrict sock, void *data, size_t len)
 {
     size_t bytes;
 
-    bytes = recv(sock->s, data, len, MSG_NOSIGNAL|MSG_WAITALL);
+    bytes = recv(sock->s, data, len, MSG_NOSIGNAL);
     if ((bytes == 0) || (bytes == SOCKET_ERROR))
             return false;
     return true;

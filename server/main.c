@@ -52,7 +52,7 @@ int main(void)
 		return -1;
 	}
 	
-	ret_val = configs_load("/etc/smarthome/wserver.conf");
+	ret_val = wconfigs_load("/etc/smarthome/wserver.conf");
 	if (ret_val != CFG_OK)
 		return exit_cfg_error("WEB server", ret_val);
 	ret_val = stlight_load_configs("/etc/smarthome/stlight.conf");

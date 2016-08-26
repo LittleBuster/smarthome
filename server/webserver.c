@@ -25,30 +25,59 @@ static struct {
 } web;
 
 
-static void get(const char *data, char *out)
+void get(const char *page, char *out)
 {
-	while (*data) {
-		if (*data == '\n')
-			break;
+	char req[255];
 
-		*out = *data;
-		data++;
-		out++;
+	char *p_req = req;
+	while (*page) {
+		*p_req = *page;
+		p_req++;
+		page++;
 	}
-	*out = '\0';
+	*p_req = '\0';
+	
+	size_t i = 0;
+	char *str = strtok(req, " ");
+	while (str) {
+		if (i == 1) {
+			strcpy(out, str);
+			break;
+		}
+		str = strtok(NULL, " ");
+		i++;
+	}
+}
+
+static void call_stlight_module(const char *command)
+{
 }
 
 static void new_session(struct tcp_client *client, void *data)
 {
 	char page[1024];
 	char get_req[255];
+	char module[255];
+	char command[255];
+	size_t i = 0;
 
 	if (!tcp_client_recv(client, page, 1024)) {
 		log_local("Fail receiving GET request.", LOG_ERROR);
 		return;
 	}
-	get(data, get_req);
-	puts(get_req);
+	get(page, get_req);
+	char *get_str = strtok(get_req, "?");
+	
+	while (get_str) {
+		if (i == 0)
+			strcpy(module, get_str);
+		if (i == 1)
+			strcpy(command, get_str);
+		get_str = strtok(NULL, "?");
+		i++;
+	}
+	if (!strcmp(module, "/stlight"))
+		call_stlight_module(command);
 }
 
 static void accept_error(void *data)
@@ -61,13 +90,13 @@ static void accept_error(void *data)
 
 bool web_server_start(void)
 {
-	struct server_cfg *sc = configs_get_server();
+	struct server_cfg *wsc = wconfigs_get_server();
 
 	pthread_mutex_init(&web.mutex, NULL);
 
 	tcp_server_set_newsession_cb(&web.server, new_session, NULL);
 	tcp_server_set_accepterr_cb(&web.server, accept_error, NULL);
-	if (!tcp_server_bind(&web.server, sc->port, sc->max_users)) {
+	if (!tcp_server_bind(&web.server, wsc->port, wsc->max_users)) {
 		log_local("Fail starting StreetLight server", LOG_ERROR);
 		return false;
 	}

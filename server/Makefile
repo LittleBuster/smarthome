@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -I. -std=gnu99 -pedantic -march=native -O2 -Wno-pointer-arith
+CFLAGS=-Wall -I. -std=gnu99 -pedantic -Wno-pointer-arith
 LDFLAGS=-lpthread -lstlight
 
 
@@ -32,13 +32,14 @@ webserver.o: webserver.c
 
 install:
 	-mkdir /usr/share/smarthome/
+	-mkdir /etc/smarthome/
 	-cp wserver /usr/share/smarthome/
-	-cp wserver.conf /etc/
+	-cp wserver.conf /etc/smarthome/
 	-chmod +x /usr/share/smarthome/wserver
 
 remove:
 	rm -rf /usr/share/smarthome
-	rm /etc/wserver.conf
+	rm /etc/smarthome/wserver.conf
 
 clean:
 	-rm wserver
