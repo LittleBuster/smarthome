@@ -49,8 +49,52 @@ void get(const char *page, char *out)
 	}
 }
 
-static void call_stlight_module(const char *command)
+static void call_stlight_module(const char *command, struct tcp_client *client)
 {
+	char func[50];
+	char answ[255];
+	unsigned lamp;
+	size_t i = 0;
+	char *params = strtok(command, "=");
+
+	while (params) {
+		if (i == 0)
+			strcpy(func, params);
+		if (i == 1)
+			sscanf(params, "%u", &lamp);
+		params = strtok(NULL, "=");
+		i++;
+	}
+
+	if (!strcmp(func, "switch_on")) {
+		if (!stlight_switch_on(lamp)) {
+			log_local("Fail sending SWITCH_ON command", LOG_ERROR);
+			strcpy(answ, "HTTP/1.1 200 OK\r\n"
+					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+					"{\"result\": \"fail\"}\r\n");
+			if (!tcp_client_send(client, answ, strlen(answ)))
+				log_local("Stlight: Fail sending answ to server", LOG_ERROR);
+		}
+		printf("Switch ON #%u sended.\n", lamp);
+	}
+
+	if (!strcmp(func, "switch_off")) {
+		if (!stlight_switch_off(lamp)) {
+			log_local("Fail sending SWITCH_OFF command", LOG_ERROR);
+			strcpy(answ, "HTTP/1.1 200 OK\r\n"
+					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+					"{\"result\": \"fail\"}\r\n");
+			if (!tcp_client_send(client, answ, strlen(answ)))
+				log_local("Stlight: Fail sending answ to server", LOG_ERROR);
+		}
+		printf("Switch OFF #%u sended.\n", lamp);
+	}
+
+	strcpy(answ, "HTTP/1.1 200 OK\r\n"
+			"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+			"{\"result\": \"ok\"}\r\n");
+	if (!tcp_client_send(client, answ, strlen(answ)))
+		log_local("Stlight: Fail sending answ to server", LOG_ERROR);
 }
 
 static void new_session(struct tcp_client *client, void *data)
@@ -77,7 +121,7 @@ static void new_session(struct tcp_client *client, void *data)
 		i++;
 	}
 	if (!strcmp(module, "/stlight"))
-		call_stlight_module(command);
+		call_stlight_module(command, client);
 }
 
 static void accept_error(void *data)
