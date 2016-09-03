@@ -50,7 +50,7 @@ static void new_session(struct tcp_client *s_client, void *data)
 		return;
 	}
 
-	CvCapture* capture = cvCreateCameraCapture(0);
+	CvCapture* capture = cvCreateCameraCapture(cmd.cam);
 	if (capture == NULL) {
 		answ.code = PHOTO_FAIL;
 		if (!tcp_client_send(s_client, &answ, sizeof(struct command))) {
@@ -61,7 +61,7 @@ static void new_session(struct tcp_client *s_client, void *data)
 		}
 	}
 	
-	IplImage* frame = cvQueryFrame( capture );
+	IplImage* frame = cvQueryFrame(capture);
 	if (frame == NULL) {
 		answ.code = PHOTO_FAIL;
 		if (!tcp_client_send(s_client, &answ, sizeof(struct command))) {

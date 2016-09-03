@@ -18,18 +18,18 @@
 
 static struct {
 	char path[PATH_SZIE];
-} log;
+} cam_log;
 
 
-bool log_set_path(const char *path)
+bool cam_log_set_path(const char *path)
 {
 	if (strlen(path) >= PATH_SZIE)
 		return false;
-	strncpy(log.path, path, PATH_SZIE);
+	strncpy(cam_log.path, path, PATH_SZIE);
 	return true;
 }
 
-bool log_local(const char *message, unsigned log_type)
+bool cam_log_local(const char *message, unsigned log_type)
 {
 	FILE *file;
 	char out_msg[255];
@@ -62,7 +62,7 @@ bool log_local(const char *message, unsigned log_type)
 	strcat(out_msg, message);
 	puts(out_msg);
 
-	file = fopen(log.path, "a");
+	file = fopen(cam_log.path, "a");
 	if (file == NULL)
 		return false;
 	if (!fputs(out_msg, file)) {

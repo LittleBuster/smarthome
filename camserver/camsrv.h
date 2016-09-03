@@ -28,6 +28,7 @@ enum cam_list {
 
 struct command {
 	uint8_t code;
+	uint8_t cam;
 };
 
 
