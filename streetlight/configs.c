@@ -13,6 +13,7 @@ enum {
 static struct {
     struct server_cfg sc;
     struct lamp_cfg lc;
+    struct move_detect md;
 } cfg;
 
 
@@ -127,6 +128,22 @@ uint8_t configs_load(const char *filename)
 	        return CFG_PARSE_ERR;
     	}
     }
+    if (!configs_read_unsigned(file, &cfg.md.mov1)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_unsigned(file, &cfg.md.mov2)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_unsigned(file, &cfg.md.lamp1)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_unsigned(file, &cfg.md.lamp2)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
     fclose(file);
     return CFG_OK;
 }
@@ -139,4 +156,9 @@ struct server_cfg *configs_get_server(void)
 struct lamp_cfg *configs_get_lamps(void)
 {
     return &cfg.lc;
+}
+
+struct move_detect *configs_get_md(void)
+{
+	return &cfg.md;
 }

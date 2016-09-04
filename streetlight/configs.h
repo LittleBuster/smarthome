@@ -42,4 +42,17 @@ struct lamp_cfg {
 struct lamp_cfg *configs_get_lamps(void);
 
 
+struct move_detect {
+	unsigned lamp1;
+	unsigned lamp2;
+	unsigned mov1;
+	unsigned mov2;
+	
+};
+/*
+ * Move detect configs
+ */
+struct move_detect *configs_get_md(void);
+
+
 #endif

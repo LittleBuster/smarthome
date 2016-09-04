@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+
+#define MOVE_TIMEOUT 60 //5 min
+
 enum {
 	SWITCH_ON,
 	SWITCH_OFF,
@@ -23,6 +26,9 @@ struct switch_answ {
 struct status_data {
 	unsigned lamps[8]; 
 };
+
+
+void move_detect_start(void);
 
 
 bool stlight_start(void);

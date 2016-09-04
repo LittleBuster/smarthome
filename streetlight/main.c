@@ -45,5 +45,6 @@ int main(void)
 		log_local(msg, LOG_ERROR);
 		return -1;
 	}
+	move_detect_start();
 	return stlight_start();
 }
