@@ -14,7 +14,6 @@
 #include "log.h"
 #include "configs.h"
 #include "tcpclient.h"
-#include "filetransfer.h"
 
 enum recv_cmd {
 	GET_PHOTO,
@@ -48,7 +47,6 @@ bool cam_get_photo(const char *filename, uint8_t cam_num)
 	struct command cmd;
 	struct command answ;
 	struct tcp_client client;
-	struct file_transfer ftransfer;
 
 	if (!tcp_client_connect(&client, "127.0.0.1", 5005)) {
 		cam_log_local("Can not connect to CAM server.", LOG_ERROR);
@@ -68,13 +66,8 @@ bool cam_get_photo(const char *filename, uint8_t cam_num)
 	}
 	if (answ.code != PHOTO_OK) {
 		tcp_client_close(&client);
-		cam_log_local("Fail capture photo.", LOG_ERROR);
+		cam_log_local("Fail getting photo.", LOG_ERROR);
 		return false;
-	}
-	file_transfer_init(&ftransfer, &client);
-	if (file_transfer_recv_file(&ftransfer, filename) != FT_RECV_OK) {
-		tcp_client_close(&client);
-		cam_log_local("Fail receiving photo from CAM server.", LOG_ERROR);	
 	}
 	tcp_client_close(&client);
 	return true;

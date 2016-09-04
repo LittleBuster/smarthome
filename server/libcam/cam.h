@@ -30,9 +30,9 @@ bool cam_set_log(const char *filename);
 
 
 enum cfg_err {
-	CFG_FILE_NOT_FOUND,
-	CFG_PARSE_ERR,
-	CFG_OK
+	CAM_CFG_FILE_NOT_FOUND,
+	CAM_CFG_PARSE_ERR,
+	CAM_CFG_OK
 };
 
 /**

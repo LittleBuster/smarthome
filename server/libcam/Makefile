@@ -5,8 +5,8 @@ LDFLAGS=-lcrypto
 
 all: libcam
 
-libcam: tcpclient.o configs.o utils.o log.o cam.o main.o filetransfer.o
-	$(CC) tcpclient.o configs.o utils.o log.o cam.o main.o filetransfer.o -o libcam $(CFLAGS) $(LDFLAGS)
+libcam: tcpclient.o configs.o utils.o log.o cam.o main.o
+	$(CC) tcpclient.o configs.o utils.o log.o cam.o main.o -o libcam $(CFLAGS) $(LDFLAGS)
 #	-ln -s libstlight.so libstlight.so.1.0.0
 
 main.o: main.c
@@ -23,9 +23,6 @@ log.o: log.c
 
 utils.o: utils.c
 	$(CC) -c utils.c $(CFLAGS)
-
-filetransfer.o: filetransfer.c
-	$(CC) -c filetransfer.c $(CFLAGS)
 
 cam.o: cam.c
 	$(CC) -c cam.c $(CFLAGS)

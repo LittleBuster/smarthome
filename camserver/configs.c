@@ -23,6 +23,7 @@ enum {
 
 static struct {
     struct server_cfg sc;
+    struct ftp_cfg fc;
 } cfg;
 
 
@@ -112,6 +113,22 @@ static bool configs_read_unsigned(FILE *restrict file, unsigned *out)
     return true;
 }
 
+static bool configs_read_string(FILE *restrict file, char *out, size_t sz)
+{
+    bool is_ok = false;
+    char data[255];
+
+    while (!feof(file)) {
+        if (fgets(data, 255, file) == NULL)
+            return false;
+        if (parse_string(data, out, sz))
+            return true;
+    }
+    if (!is_ok)
+        return false;
+    return true;
+}
+
 /*
  * Loading configs from file
  */
@@ -131,6 +148,18 @@ uint8_t configs_load(const char *filename)
         fclose(file);
         return CFG_PARSE_ERR;
     }
+    if (!configs_read_string(file, cfg.fc.ip, 15)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_string(file, cfg.fc.user, 49)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_string(file, cfg.fc.passwd, 49)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
     fclose(file);
     return CFG_OK;
 }
@@ -138,4 +167,9 @@ uint8_t configs_load(const char *filename)
 struct server_cfg *configs_get_server(void)
 {
     return &cfg.sc;
+}
+
+struct ftp_cfg *configs_get_ftp(void)
+{
+    return &cfg.fc;
 }

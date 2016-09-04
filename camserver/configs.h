@@ -43,4 +43,16 @@ struct server_cfg {
 struct server_cfg *configs_get_server(void);
 
 
+struct ftp_cfg {
+	char ip[16];
+	char user[50];
+	char passwd[50];
+};
+
+/*
+ * Get FTP configs
+ */
+struct ftp_cfg *configs_get_ftp(void);
+
+
 #endif

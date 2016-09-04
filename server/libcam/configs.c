@@ -17,9 +17,9 @@
 
 
 enum error_codes {
-    CFG_FILE_NOT_FOUND,
-    CFG_PARSE_ERR,
-    CFG_OK
+    CAM_CFG_FILE_NOT_FOUND,
+    CAM_CFG_PARSE_ERR,
+    CAM_CFG_OK
 };
 
 enum {
@@ -143,18 +143,18 @@ uint8_t cam_configs_load(const char *filename)
 
     file = fopen(filename, "r");
     if (file == NULL)
-        return CFG_FILE_NOT_FOUND;
+        return CAM_CFG_FILE_NOT_FOUND;
 
     if (!configs_read_string(file, cam_cfg.csc.ip, 15)) {
         fclose(file);
-        return CFG_PARSE_ERR;
+        return CAM_CFG_PARSE_ERR;
     }
     if (!configs_read_unsigned(file, &cam_cfg.csc.port)) {
         fclose(file);
-        return CFG_PARSE_ERR;
+        return CAM_CFG_PARSE_ERR;
     }
     fclose(file);
-    return CFG_OK;
+    return CAM_CFG_OK;
 }
 
 struct server_cfg *cam_configs_get_server(void)

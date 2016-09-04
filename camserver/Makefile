@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -I. -std=gnu99 -pedantic -march=native -O2 -Wno-pointer-arith
-LDFLAGS=-lpthread -lcrypto -lopencv_core -lopencv_highgui -l opencv_imgproc
-OUTLIST=main.o tcpclient.o configs.o utils.o log.o tcpserver.o camsrv.o filetransfer.o
+LDFLAGS=-lpthread -lcrypto -lopencv_core -lopencv_highgui -lopencv_imgproc -lftp
+OUTLIST=main.o tcpclient.o configs.o utils.o log.o tcpserver.o camsrv.o
 
 
 all: camsrv
@@ -30,10 +30,6 @@ log.o: log.c
 utils.o: utils.c
 	$(CC) -c utils.c $(CFLAGS)
 
-filetransfer.o: filetransfer.c
-	$(CC) -c filetransfer.c $(CFLAGS)
-
-
 install:
 	cp camsrv.conf /etc/
 
@@ -43,3 +39,4 @@ remove:
 clean:
 	-rm camsrv
 	-rm *.o
+	-rm *.jpg
