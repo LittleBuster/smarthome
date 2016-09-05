@@ -14,14 +14,14 @@ main.o: main.c
 configs.o: configs.c
 	$(CC) -c -fPIC configs.c $(CFLAGS)
 
-tcpclient.o: ../tcpclient.c
-	$(CC) -c -fPIC ../tcpclient.c $(CFLAGS)
+tcpclient.o: tcpclient.c
+	$(CC) -c -fPIC tcpclient.c $(CFLAGS)
 
-log.o: ../log.c
-	$(CC) -c -fPIC ../log.c $(CFLAGS)
+log.o: log.c
+	$(CC) -c -fPIC log.c $(CFLAGS)
 
-utils.o: ../utils.c
-	$(CC) -c -fPIC ../utils.c $(CFLAGS)
+utils.o: utils.c
+	$(CC) -c -fPIC utils.c $(CFLAGS)
 
 stlight.o: stlight.c
 	$(CC) -c -fPIC stlight.c $(CFLAGS)
@@ -30,6 +30,7 @@ stlight.o: stlight.c
 install:
 	-cp libstlight.* /usr/lib/
 	-mkdir /etc/smarthome/
+	-mkdir /var/log/smarthome/
 	-mkdir /usr/include/smarthome/
 	-cp stlight.conf /etc/smarthome/
 	-cp stlight.h /usr/include/smarthome/

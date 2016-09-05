@@ -1,4 +1,4 @@
-/* SmartHome: CAM server library
+/* SmartHome: StreetLight server library
  *
  * Copyright (C) 2016 Sergey Denisov.
  * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
@@ -18,18 +18,18 @@
 
 static struct {
 	char path[PATH_SZIE];
-} cam_log;
+} st_log;
 
 
-bool cam_log_set_path(const char *path)
+bool st_log_set_path(const char *path)
 {
 	if (strlen(path) >= PATH_SZIE)
 		return false;
-	strncpy(cam_log.path, path, PATH_SZIE);
+	strncpy(st_log.path, path, PATH_SZIE);
 	return true;
 }
 
-bool cam_log_local(const char *message, unsigned log_type)
+bool st_log_local(const char *message, unsigned log_type)
 {
 	FILE *file;
 	char out_msg[255];
@@ -46,15 +46,15 @@ bool cam_log_local(const char *message, unsigned log_type)
 	strcat(out_msg, "][");
 
 	switch(log_type) {
-		case LOG_ERROR: {
+		case ST_LOG_ERROR: {
 			strcat(out_msg, "ERROR] ");
 			break;
 		}
-		case LOG_WARNING: {
+		case ST_LOG_WARNING: {
 			strcat(out_msg, "WARNING] ");
 			break;
 		}
-		case LOG_INFO: {
+		case ST_LOG_INFO: {
 			strcat(out_msg, "INFO] ");
 			break;
 		}
@@ -62,7 +62,7 @@ bool cam_log_local(const char *message, unsigned log_type)
 	strcat(out_msg, message);
 	puts(out_msg);
 
-	file = fopen(cam_log.path, "a");
+	file = fopen(st_log.path, "a");
 	if (file == NULL)
 		return false;
 	if (!fputs(out_msg, file)) {

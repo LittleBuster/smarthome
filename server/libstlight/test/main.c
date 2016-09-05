@@ -38,7 +38,7 @@ int main(void)
 	}
 	puts("[OK] Setting log path.");
 
-	if (stlight_load_configs("/etc/smarthome/stlight.conf") != CFG_OK) {
+	if (stlight_load_configs("/etc/smarthome/stlight.conf") != ST_CFG_OK) {
 		exit_fail("Loading configs.");
 		return -1;
 	}

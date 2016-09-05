@@ -15,52 +15,88 @@
 #include <stdio.h>
 #include <string.h>
 #include <smarthome/stlight.h>
-
-static int exit_cfg_error(const char *who, int ret_val)
-{
-	char msg[255];
-
-	strcpy(msg, "Fail reading ");
-	strcat(msg, who);
-	strcat(msg, " configs: ");
-
-	switch (ret_val) {
-		case CFG_FILE_NOT_FOUND: {
-			strcat(msg, "file not found.");
-			break;
-		} 
-		case CFG_PARSE_ERR: {
-			strcat(msg, "parsing error.");
-			break;
-		} 
-	}
-	log_local(msg, LOG_ERROR);
-	return -1;
-}
+#include <smarthome/cam.h>
 
 
 int main(void)
 {
 	uint8_t ret_val;
 
-	if (!log_set_path("/var/log/wserver.log")) {
-		puts("Fail setting log path. Path is to long.");
+	/*
+	 * Setting logs
+	 */
+	if (!log_set_path("/var/log/smarthome/wserver.log")) {
+		puts("Fail setting SMART SERVER log path. Path is to long.");
 		return -1;
 	}
-	if (!stlight_set_log("/var/log/stlight.log")) {
-		puts("Fail setting log path. Path is to long.");
+	if (!stlight_set_log("/var/log/smarthome/stlight.log")) {
+		puts("Fail setting STREET LIGHT log path. Path is to long.");
 		return -1;
 	}
-	
-	ret_val = wconfigs_load("/etc/smarthome/wserver.conf");
-	if (ret_val != CFG_OK)
-		return exit_cfg_error("WEB server", ret_val);
+	if (!cam_set_log("/var/log/smarthome/cam.log")) {
+		puts("Fail setting CAM log path. Path is to long.");
+		return -1;
+	}
+	/*
+	 * Loading configs
+	 */
+	ret_val = configs_load("/etc/smarthome/wserver.conf");
+	if (ret_val != CFG_OK) {
+		char msg[255];
+
+		strcpy(msg, "Fail reading SMART SERVER configs: ");
+		switch (ret_val) {				
+			case CFG_FILE_NOT_FOUND: {
+				strcat(msg, "File not found.");
+				break;
+			}
+			case CFG_PARSE_ERR: {
+				strcat(msg, "parsing error.");
+				break;
+			}
+		}
+		log_local(msg, LOG_ERROR);
+		return -1;
+	}
 	ret_val = stlight_load_configs("/etc/smarthome/stlight.conf");
-	if (ret_val != CFG_OK)
-		return exit_cfg_error("StreetLight", ret_val);
+	if (ret_val != ST_CFG_OK) {
+		char msg[255];
+
+		strcpy(msg, "Fail reading STREET LIGHT configs: ");
+		switch (ret_val) {			
+			case ST_CFG_FILE_NOT_FOUND: {
+				strcat(msg, "File not found.");
+				break;
+			}
+			case ST_CFG_PARSE_ERR: {
+				strcat(msg, "parsing error.");
+				break;
+			}
+		}
+		log_local(msg, LOG_ERROR);
+		return -1;
+	}
+	ret_val = cam_load_configs("/etc/smarthome/cam.conf");
+	if (ret_val != CAM_CFG_OK) {
+		char msg[255];
+
+		strcpy(msg, "Fail reading STREET LIGHT configs: ");
+		switch (ret_val) {			
+			case CAM_CFG_FILE_NOT_FOUND: {
+				strcat(msg, "File not found.");
+				break;
+			}
+			case CAM_CFG_PARSE_ERR: {
+				strcat(msg, "parsing error.");
+				break;
+			}
+		}
+		log_local(msg, LOG_ERROR);
+		return -1;
+	}
 	
 	if (!web_server_start()) {
-		log_local("Fail starting web server.", LOG_ERROR);
+		log_local("Fail starting smart web server.", LOG_ERROR);
 		return -1;
 	}
 	return 0;

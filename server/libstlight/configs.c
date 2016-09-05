@@ -17,9 +17,9 @@
 
 
 enum error_codes {
-    CFG_FILE_NOT_FOUND,
-    CFG_PARSE_ERR,
-    CFG_OK
+    ST_CFG_FILE_NOT_FOUND,
+    ST_CFG_PARSE_ERR,
+    ST_CFG_OK
 };
 
 enum {
@@ -28,8 +28,8 @@ enum {
 };
 
 static struct {
-    struct server_cfg sc;
-} cfg;
+    struct server_cfg ssc;
+} st_cfg;
 
 
 /*
@@ -137,27 +137,27 @@ static bool configs_read_string(FILE *restrict file, char *out, size_t sz)
 /*
  * Loading configs from file
  */
-uint8_t configs_load(const char *filename)
+uint8_t st_configs_load(const char *filename)
 {
     FILE *file;
 
     file = fopen(filename, "r");
     if (file == NULL)
-        return CFG_FILE_NOT_FOUND;
+        return ST_CFG_FILE_NOT_FOUND;
 
-    if (!configs_read_string(file, cfg.sc.ip, 15)) {
+    if (!configs_read_string(file, st_cfg.ssc.ip, 15)) {
         fclose(file);
-        return CFG_PARSE_ERR;
+        return ST_CFG_PARSE_ERR;
     }
-    if (!configs_read_unsigned(file, &cfg.sc.port)) {
+    if (!configs_read_unsigned(file, &st_cfg.ssc.port)) {
         fclose(file);
-        return CFG_PARSE_ERR;
+        return ST_CFG_PARSE_ERR;
     }
     fclose(file);
-    return CFG_OK;
+    return ST_CFG_OK;
 }
 
-struct server_cfg *configs_get_server(void)
+struct server_cfg *st_configs_get_server(void)
 {
-    return &cfg.sc;
+    return &st_cfg.ssc;
 }

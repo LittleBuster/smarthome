@@ -23,7 +23,7 @@
  * returns error codes: if fail loading
  * returns CFG_OK: if succeful loading
  */
-uint8_t configs_load(const char *filename);
+uint8_t st_configs_load(const char *filename);
 
 
 struct server_cfg {
@@ -34,7 +34,7 @@ struct server_cfg {
 /*
  * Get server configs
  */
-struct server_cfg *configs_get_server(void);
+struct server_cfg *st_configs_get_server(void);
 
 
 #endif

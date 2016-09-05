@@ -16,21 +16,14 @@
 #include <string.h>
 
 
-enum error_codes {
-    CFG_FILE_NOT_FOUND,
-    CFG_PARSE_ERR,
-    CFG_OK
-};
-
-
 enum {
 	POS_COMMENT = -2,
 	POS_NOT_FOUND = -1
 };
 
 static struct {
-    struct server_cfg wsc;
-} wserver_cfg;
+    struct server_cfg sc;
+} server_cfg;
 
 
 /*
@@ -122,7 +115,7 @@ static bool configs_read_unsigned(FILE *restrict file, unsigned *out)
 /*
  * Loading configs from file
  */
-uint8_t wconfigs_load(const char *filename)
+uint8_t configs_load(const char *filename)
 {
     FILE *file;
 
@@ -130,11 +123,11 @@ uint8_t wconfigs_load(const char *filename)
     if (file == NULL)
         return CFG_FILE_NOT_FOUND;
 
-    if (!configs_read_unsigned(file, &wserver_cfg.wsc.port)) {
+    if (!configs_read_unsigned(file, &server_cfg.sc.port)) {
         fclose(file);
         return CFG_PARSE_ERR;
     }
-    if (!configs_read_unsigned(file, &wserver_cfg.wsc.max_users)) {
+    if (!configs_read_unsigned(file, &server_cfg.sc.max_users)) {
         fclose(file);
         return CFG_PARSE_ERR;
     }
@@ -142,7 +135,7 @@ uint8_t wconfigs_load(const char *filename)
     return CFG_OK;
 }
 
-struct server_cfg *wconfigs_get_server(void)
+struct server_cfg *configs_get_server(void)
 {
-    return &wserver_cfg.wsc;
+    return &server_cfg.sc;
 }

@@ -29,10 +29,10 @@ extern "C" {
 bool stlight_set_log(const char *filename);
 
 
-enum cfg_err {
-	CFG_FILE_NOT_FOUND,
-	CFG_PARSE_ERR,
-	CFG_OK
+enum st_cfg_err {
+	ST_CFG_FILE_NOT_FOUND,
+	ST_CFG_PARSE_ERR,
+	ST_CFG_OK
 };
 
 /**
@@ -74,7 +74,7 @@ struct status_data {
  * returns false: if fail receiving status from device
  * returns true: if status received
  */
-bool stlight_get_status(struct status_data *status);
+bool stlight_get_status(struct status_data *restrict status);
 
 /**
  * Set lamps status array
@@ -83,7 +83,7 @@ bool stlight_get_status(struct status_data *status);
  * returns false: if fail sending status to device
  * returns true: if status sended
  */
-bool stlight_set_status(const struct status_data *status);
+bool stlight_set_status(const struct status_data *restrict status);
 
 
 #ifdef __cplusplus

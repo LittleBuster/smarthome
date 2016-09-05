@@ -26,7 +26,7 @@ static struct {
 } web;
 
 
-void get(const char *page, char *out)
+static bool get_parse(const char *page, char *out)
 {
 	char req[255];
 
@@ -38,38 +38,35 @@ void get(const char *page, char *out)
 	}
 	*p_req = '\0';
 	
-	size_t i = 0;
 	char *str = strtok(req, " ");
-	while (str) {
-		if (i == 1) {
-			strcpy(out, str);
-			break;
-		}
-		str = strtok(NULL, " ");
-		i++;
+	if (str == NULL) {
+		log_local("Fail parsing GET header request.", LOG_ERROR);
+		return false;
 	}
+	str = strtok(NULL, " ");
+	if (str == NULL) {
+		log_local("Fail parsing GET header request.", LOG_ERROR);
+		return false;
+	}
+	strcpy(out, str);
+	return true;
 }
 
-static void call_stlight_module(const char *command, struct tcp_client *client)
+static void call_stlight_module(const char *command, struct tcp_client *restrict client)
 {
 	char func[50];
 	char answ[255];
 	unsigned lamp;
-	size_t i = 0;
-	char *params = strtok(command, "=");
-
-	while (params) {
-		if (i == 0) {
-			strcpy(func, params);
-			if (!strcmp(params, "get_status"))
-				break;
-		}
-		if (i == 1)
-			sscanf(params, "%u", &lamp);
-		params = strtok(NULL, "=");
-		i++;
+	
+	char *params = strtok((const char *)command, "=");
+	if (params == NULL) {
+		log_local("Fail parsing STLIGHT request params.", LOG_ERROR);
+		return;
 	}
-	if (!strcmp(func, "get_status")) {
+	/*
+	 * Calling get status command
+	 */
+	if (!strcmp(params, "get_status")) {
 		struct status_data stat;
 
 		if (!stlight_get_status(&stat)) {
@@ -80,6 +77,9 @@ static void call_stlight_module(const char *command, struct tcp_client *client)
 			if (!tcp_client_send(client, answ, strlen(answ)))
 				log_local("Stlight: Fail sending answ to server", LOG_ERROR);
 		}
+		/*
+		 * Sending json answ with array
+		 */
 		strcpy(answ, "HTTP/1.1 200 OK\r\n"
 				"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 				"{\"result\": \"ok\", \"lamps\":[");
@@ -94,10 +94,23 @@ static void call_stlight_module(const char *command, struct tcp_client *client)
 		strcat(answ, "]}\r\n");
 		
 		if (!tcp_client_send(client, answ, strlen(answ)))
-			log_local("Stlight: Fail sending answ to server", LOG_ERROR);
+			log_local("Stlight: Fail sending get_status answ to server", LOG_ERROR);
 		return;
 	}
+	/*
+	 * If not get status
+	 */	
+	strcpy(func, params);
+	params = strtok(NULL, "=");
+	if (params == NULL) {
+		log_local("Fail parsing STLIGHT request params.", LOG_ERROR);
+		return;
+	}
+	sscanf(params, "%u", &lamp);
 
+	/*
+	 * Switching on lamp
+	 */
 	if (!strcmp(func, "switch_on")) {
 		if (!stlight_switch_on(lamp)) {
 			log_local("Fail sending SWITCH_ON command", LOG_ERROR);
@@ -110,6 +123,9 @@ static void call_stlight_module(const char *command, struct tcp_client *client)
 		printf("Switch ON #%u sended.\n", lamp);
 	}
 
+	/*
+	 * Switching off lamp
+	 */
 	if (!strcmp(func, "switch_off")) {
 		if (!stlight_switch_off(lamp)) {
 			log_local("Fail sending SWITCH_OFF command", LOG_ERROR);
@@ -122,6 +138,9 @@ static void call_stlight_module(const char *command, struct tcp_client *client)
 		printf("Switch OFF #%u sended.\n", lamp);
 	}
 
+	/*
+	 * Sending OK result
+	 */
 	strcpy(answ, "HTTP/1.1 200 OK\r\n"
 			"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 			"{\"result\": \"ok\"}\r\n");
@@ -129,36 +148,45 @@ static void call_stlight_module(const char *command, struct tcp_client *client)
 		log_local("Stlight: Fail sending answ to server", LOG_ERROR);
 }
 
-static void call_cam_module(const char *command, struct tcp_client *client)
+static void call_cam_module(const char *command, struct tcp_client *restrict client)
 {
 	char func[50];
 	char answ[255];
 	unsigned cam;
-	size_t i = 0;
-	char *params = strtok(command, "=");
 
-	while (params) {
-		if (i == 0)
-			strcpy(func, params);
-		if (i == 1)
-			sscanf(params, "%u", &lamp);
-		params = strtok(NULL, "=");
-		i++;
+	char *params = strtok((const char *)command, "=");
+	if (params == NULL) {
+		log_local("Fail parsing CAM request params.", LOG_ERROR);
+		return;
 	}
+	strcpy(func, params);
+	params = strtok(NULL, "=");
+	if (params == NULL) {
+		log_local("Fail parsing CAM request params.", LOG_ERROR);
+		return;
+	}
+	sscanf(params, "%u", &cam);
+
 	if (!strcmp(func, "get_photo")) {
-		if (!cam_get_photo("photo.jpg", cam)) {
+		if (!cam_get_photo(cam)) {
 			log_local("Fail sending GET_PHOTO command", LOG_ERROR);
+
 			strcpy(answ, "HTTP/1.1 200 OK\r\n"
 					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 					"{\"result\": \"fail\"}\r\n");
-			if (!tcp_client_send(client, answ, strlen(answ)))
+			if (!tcp_client_send(client, answ, strlen(answ))) {
 				log_local("CAM: Fail sending answ to server", LOG_ERROR);
+			}
 		}
 		strcpy(answ, "HTTP/1.1 200 OK\r\n"
 				"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 				"{\"result\": \"ok\"}\r\n");
-		if (!tcp_client_send(client, answ, strlen(answ)))
+		if (!tcp_client_send(client, answ, strlen(answ))) {
 			log_local("CAM: Fail sending answ to server", LOG_ERROR);
+		}
+	} else {
+		log_local("Fail parsing CAM request func.", LOG_ERROR);
+		return;
 	}
 }
 
@@ -168,28 +196,39 @@ static void new_session(struct tcp_client *client, void *data)
 	char get_req[255];
 	char module[255];
 	char command[255];
-	size_t i = 0;
 
 	if (!tcp_client_recv(client, page, 1024)) {
 		log_local("Fail receiving GET request.", LOG_ERROR);
 		return;
 	}
-	get(page, get_req);
-	char *get_str = strtok(get_req, "?");
-	
-	while (get_str) {
-		if (i == 0)
-			strcpy(module, get_str);
-		if (i == 1)
-			strcpy(command, get_str);
-		get_str = strtok(NULL, "?");
-		i++;
-	}
-	if (!strcmp(module, "/stlight"))
-		call_stlight_module(command, client);
+	if (!get_parse(page, get_req))
+		return;
 
-	if (!strcmp(module, "/cam"))
+	char *get_str = strtok(get_req, "?");
+	if (get_str == NULL) {
+		log_local("Invalid GET request.", LOG_ERROR);
+		return;
+	}
+	strcpy(module, get_str);
+	get_str = strtok(NULL, "?");
+	if (get_str == NULL) {
+		log_local("Invalid GET request.", LOG_ERROR);
+		return;
+	}
+	strcpy(command, get_str);
+
+	/*
+	 * Calling modules
+	 */
+	if (!strcmp(module, "/stlight")) {
+		call_stlight_module(command, client);
+		return;
+	}
+
+	if (!strcmp(module, "/cam")) {
 		call_cam_module(command, client);
+		return;
+	}
 }
 
 static void accept_error(void *data)
@@ -202,14 +241,14 @@ static void accept_error(void *data)
 
 bool web_server_start(void)
 {
-	struct server_cfg *wsc = wconfigs_get_server();
+	struct server_cfg *wsc = configs_get_server();
 
 	pthread_mutex_init(&web.mutex, NULL);
 
 	tcp_server_set_newsession_cb(&web.server, new_session, NULL);
 	tcp_server_set_accepterr_cb(&web.server, accept_error, NULL);
 	if (!tcp_server_bind(&web.server, wsc->port, wsc->max_users)) {
-		log_local("Fail starting StreetLight server", LOG_ERROR);
+		log_local("Fail starting smart web server.", LOG_ERROR);
 		return false;
 	}
 	pthread_mutex_destroy(&web.mutex);

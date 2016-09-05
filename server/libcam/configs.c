@@ -1,4 +1,4 @@
-/* SmartHome: StreetLight server library
+/* SmartHome: CAM server library
  *
  * Copyright (C) 2016 Sergey Denisov.
  * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
@@ -16,7 +16,7 @@
 #include <string.h>
 
 
-enum error_codes {
+enum cam_error_codes {
     CAM_CFG_FILE_NOT_FOUND,
     CAM_CFG_PARSE_ERR,
     CAM_CFG_OK

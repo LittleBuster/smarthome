@@ -1,4 +1,4 @@
-/* SmartHome: CAM server library
+/* SmartHome: StreetLight server library
  *
  * Copyright (C) 2016 Sergey Denisov.
  * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)

@@ -1,4 +1,4 @@
-/* SmartHome: CAM server library
+/* SmartHome: StreetLight server library
  *
  * Copyright (C) 2016 Sergey Denisov.
  * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
@@ -15,9 +15,9 @@
 #include <stdbool.h>
 
 enum {
-	LOG_ERROR,
-	LOG_WARNING,
-	LOG_INFO
+	ST_LOG_ERROR,
+	ST_LOG_WARNING,
+	ST_LOG_INFO
 };
 
 
@@ -28,7 +28,7 @@ enum {
  * returns true: if setted
  * returns false: if path size > max_path_size
  */
-bool cam_log_set_path(const char *path);
+bool st_log_set_path(const char *path);
 
 /**
  * Writing message to local log file
@@ -38,7 +38,7 @@ bool cam_log_set_path(const char *path);
  * returns true: if message writed
  * returns false: if message writing error
  */
-bool cam_log_local(const char *message, unsigned log_type);
+bool st_log_local(const char *message, unsigned log_type);
 
 
 #endif

@@ -16,6 +16,11 @@
 #include <stdint.h>
 
 
+enum error_codes {
+    CFG_FILE_NOT_FOUND,
+    CFG_PARSE_ERR,
+    CFG_OK
+};
 /**
  * Loading configs from file to RAM
  * @filename: name of configs file
@@ -23,7 +28,7 @@
  * returns error codes: if fail loading
  * returns CFG_OK: if succeful loading
  */
-uint8_t wconfigs_load(const char *filename);
+uint8_t configs_load(const char *filename);
 
 
 struct server_cfg {
@@ -34,7 +39,7 @@ struct server_cfg {
 /*
  * Get server configs
  */
-struct server_cfg *wconfigs_get_server(void);
+struct server_cfg *configs_get_server(void);
 
 
 #endif

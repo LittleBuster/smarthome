@@ -27,6 +27,7 @@ cam.o: cam.c
 install:
 	-cp libcam.* /usr/lib/
 	-mkdir /etc/smarthome/
+	-mkdir /var/log/smarthome/
 	-mkdir /usr/include/smarthome/
 	-cp cam.conf /etc/smarthome/
 	-cp cam.h /usr/include/smarthome/

@@ -1,4 +1,4 @@
-/* SmartHome: StreetLight server library
+/* SmartHome: CAM server library
  *
  * Copyright (C) 2016 Sergey Denisov.
  * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
@@ -9,8 +9,8 @@
  * of the Licence, or (at your option) any later version.
  */
 
-#ifndef __STLIGHT_H__
-#define __STLIGHT_H__
+#ifndef __CAM_H__
+#define __CAM_H__
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -29,14 +29,14 @@ extern "C" {
 bool cam_set_log(const char *filename);
 
 
-enum cfg_err {
-	CAM_CFG_FILE_NOT_FOUND,
-	CAM_CFG_PARSE_ERR,
-	CAM_CFG_OK
+enum cam_error_codes {
+    CAM_CFG_FILE_NOT_FOUND,
+    CAM_CFG_PARSE_ERR,
+    CAM_CFG_OK
 };
 
 /**
- * Loading configs of cam module
+ * Loading configs of CAM module
  * @filename: path to configs file
  *
  * returns CFG_OK: if reading ok
