@@ -15,6 +15,7 @@
 #include "configs.h"
 #include "pthread.h"
 #include <smarthome/stlight.h>
+#include <smarthome/cam.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -58,12 +59,43 @@ static void call_stlight_module(const char *command, struct tcp_client *client)
 	char *params = strtok(command, "=");
 
 	while (params) {
-		if (i == 0)
+		if (i == 0) {
 			strcpy(func, params);
+			if (!strcmp(params, "get_status"))
+				break;
+		}
 		if (i == 1)
 			sscanf(params, "%u", &lamp);
 		params = strtok(NULL, "=");
 		i++;
+	}
+	if (!strcmp(func, "get_status")) {
+		struct status_data stat;
+
+		if (!stlight_get_status(&stat)) {
+			log_local("Fail sending GET_STATUS command", LOG_ERROR);
+			strcpy(answ, "HTTP/1.1 200 OK\r\n"
+					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+					"{\"result\": \"fail\"}\r\n");
+			if (!tcp_client_send(client, answ, strlen(answ)))
+				log_local("Stlight: Fail sending answ to server", LOG_ERROR);
+		}
+		strcpy(answ, "HTTP/1.1 200 OK\r\n"
+				"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+				"{\"result\": \"ok\", \"lamps\":[");
+		for (size_t i = 0; i < 8; i++) {
+			char num[2];
+			
+			sprintf(num, "%u", stat.lamps[i]);
+			strcat(answ, num);
+			if (i != 7)
+				strcat(answ, ",");
+		}
+		strcat(answ, "]}\r\n");
+		
+		if (!tcp_client_send(client, answ, strlen(answ)))
+			log_local("Stlight: Fail sending answ to server", LOG_ERROR);
+		return;
 	}
 
 	if (!strcmp(func, "switch_on")) {
@@ -97,6 +129,39 @@ static void call_stlight_module(const char *command, struct tcp_client *client)
 		log_local("Stlight: Fail sending answ to server", LOG_ERROR);
 }
 
+static void call_cam_module(const char *command, struct tcp_client *client)
+{
+	char func[50];
+	char answ[255];
+	unsigned cam;
+	size_t i = 0;
+	char *params = strtok(command, "=");
+
+	while (params) {
+		if (i == 0)
+			strcpy(func, params);
+		if (i == 1)
+			sscanf(params, "%u", &lamp);
+		params = strtok(NULL, "=");
+		i++;
+	}
+	if (!strcmp(func, "get_photo")) {
+		if (!cam_get_photo("photo.jpg", cam)) {
+			log_local("Fail sending GET_PHOTO command", LOG_ERROR);
+			strcpy(answ, "HTTP/1.1 200 OK\r\n"
+					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+					"{\"result\": \"fail\"}\r\n");
+			if (!tcp_client_send(client, answ, strlen(answ)))
+				log_local("CAM: Fail sending answ to server", LOG_ERROR);
+		}
+		strcpy(answ, "HTTP/1.1 200 OK\r\n"
+				"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+				"{\"result\": \"ok\"}\r\n");
+		if (!tcp_client_send(client, answ, strlen(answ)))
+			log_local("CAM: Fail sending answ to server", LOG_ERROR);
+	}
+}
+
 static void new_session(struct tcp_client *client, void *data)
 {
 	char page[1024];
@@ -122,6 +187,9 @@ static void new_session(struct tcp_client *client, void *data)
 	}
 	if (!strcmp(module, "/stlight"))
 		call_stlight_module(command, client);
+
+	if (!strcmp(module, "/cam"))
+		call_cam_module(command, client);
 }
 
 static void accept_error(void *data)

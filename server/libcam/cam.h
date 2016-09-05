@@ -44,8 +44,14 @@ enum cfg_err {
  */
 uint8_t cam_load_configs(const char *filename);
 
-
-bool cam_get_photo(const char *filename, uint8_t cam_num);
+/**
+ * Getting photo from camera
+ * @cam_num: number of camera
+ *
+ * returns true: if getting photo ok
+ * returns false: if fail getting photo
+ */
+bool cam_get_photo(uint8_t cam_num);
 
 
 #ifdef __cplusplus

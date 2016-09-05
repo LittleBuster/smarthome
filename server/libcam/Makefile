@@ -1,44 +1,40 @@
 CC=gcc
 CFLAGS=-Wall -I. -std=gnu99 -pedantic -march=native -O2 -Wno-pointer-arith
-LDFLAGS=-lcrypto
 
 
 all: libcam
 
-libcam: tcpclient.o configs.o utils.o log.o cam.o main.o
-	$(CC) tcpclient.o configs.o utils.o log.o cam.o main.o -o libcam $(CFLAGS) $(LDFLAGS)
-#	-ln -s libstlight.so libstlight.so.1.0.0
-
-main.o: main.c
-	$(CC) -c main.c $(CFLAGS)
+libcam: tcpclient.o configs.o utils.o log.o cam.o
+	$(CC) tcpclient.o configs.o utils.o log.o cam.o -shared -o libcam.so $(CFLAGS) $(LDFLAGS)
+	-ln -s libcam.so libcam.so.1.0.0
 
 configs.o: configs.c
-	$(CC) -c configs.c $(CFLAGS)
+	$(CC) -c -fPIC configs.c $(CFLAGS)
 
 tcpclient.o: tcpclient.c
-	$(CC) -c tcpclient.c $(CFLAGS)
+	$(CC) -c -fPIC tcpclient.c $(CFLAGS)
 
 log.o: log.c
-	$(CC) -c log.c $(CFLAGS)
+	$(CC) -c -fPIC log.c $(CFLAGS)
 
 utils.o: utils.c
-	$(CC) -c utils.c $(CFLAGS)
+	$(CC) -c -fPIC utils.c $(CFLAGS)
 
 cam.o: cam.c
-	$(CC) -c cam.c $(CFLAGS)
+	$(CC) -c -fPIC cam.c $(CFLAGS)
 
 
 install:
-	-cp libstlight.* /usr/lib/
+	-cp libcam.* /usr/lib/
 	-mkdir /etc/smarthome/
 	-mkdir /usr/include/smarthome/
-	-cp stlight.conf /etc/smarthome/
-	-cp stlight.h /usr/include/smarthome/
+	-cp cam.conf /etc/smarthome/
+	-cp cam.h /usr/include/smarthome/
 
 remove:
-	-rm -rf /usr/lib/libstlight.so*
-	-rm /etc/smarthome/stlight.conf
-	-rm /usr/include/smarthome/stlight.h
+	-rm -rf /usr/lib/libcam.so*
+	-rm /etc/smarthome/cam.conf
+	-rm /usr/include/smarthome/cam.h
 
 clean:
 	-rm libcam*

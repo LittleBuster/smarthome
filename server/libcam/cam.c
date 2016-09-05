@@ -42,13 +42,14 @@ uint8_t cam_load_configs(const char *filename)
 	return cam_configs_load(filename);
 }
 
-bool cam_get_photo(const char *filename, uint8_t cam_num)
+bool cam_get_photo(uint8_t cam_num)
 {
 	struct command cmd;
 	struct command answ;
 	struct tcp_client client;
+	struct server_cfg *csc = cam_configs_get_server();
 
-	if (!tcp_client_connect(&client, "127.0.0.1", 5005)) {
+	if (!tcp_client_connect(&client, csc->ip, csc->port)) {
 		cam_log_local("Can not connect to CAM server.", LOG_ERROR);
 		return false;
 	}
