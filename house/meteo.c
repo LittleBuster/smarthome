@@ -12,6 +12,7 @@
 #include "meteo.h"
 #include "gpio.h"
 #include "dht22.h"
+#include "log.h"
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -47,10 +48,33 @@ static struct {
 };
 
 
+static void sensor_read_data(struct dht22 *restrict dht, float *temp, float *hum)
+{
+    uint8_t last_error = 0;
+
+	for (uint8_t i = 0; i < 20; i++) {
+    	last_error = dht22_read_data(dht, temp, hum);
+    	if (last_error == DHT_OK)
+    		return;
+    	
+    	struct timeval tv = {1, 0};
+		if (select(0, NULL, NULL, NULL, &tv) == -1)
+    		if (EINTR == errno)
+    			continue;
+    }
+    if (last_error != DHT_OK)
+    	log_local("Fail reading street sensor.", LOG_WARNING);
+}
+
 static void* timer_thread(void *data)
 {
-	struct timeval tv = {2, 0};
 	for (;;) {
+    	sensor_read_data(&meteo.dht_street, &meteo.street_temp, &meteo.street_hum);
+    	sensor_read_data(&meteo.dht_room, &meteo.room_temp, &meteo.room_hum);
+    	sensor_read_data(&meteo.dht_veranda, &meteo.veranda_temp, &meteo.veranda_hum);
+    	sensor_read_data(&meteo.dht_2nd, &meteo.second_temp, &meteo.second_hum);
+
+    	struct timeval tv = {2, 0};
 		if (select(0, NULL, NULL, NULL, &tv) == -1)
     		if (EINTR == errno)
     			continue;
@@ -77,20 +101,24 @@ void meteo_sensors_start_timer(void)
 
 void meteo_get_street_data(float *temp, float *hum)
 {
-
+	*temp = meteo.street_temp;
+	*hum = meteo.street_hum;
 }
 
 void meteo_get_room_data(float *temp, float *hum)
 {
-
+	*temp = meteo.room_temp;
+	*hum = meteo.room_hum;
 }
 
 void meteo_get_2nd_data(float *temp, float *hum)
 {
-
+	*temp = meteo.second_temp;
+	*hum = meteo.second_hum;
 }
 
 void meteo_get_veranda_data(float *temp, float *hum)
 {
-
+	*temp = meteo.veranda_temp;
+	*hum = meteo.veranda_hum;
 }
