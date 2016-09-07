@@ -1,4 +1,4 @@
-/* Smart Home: CAM server
+/* Smart Home: House server
  *
  * Copyright (C) 2016 Sergey Denisov.
  * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
@@ -9,30 +9,13 @@
  * of the Licence, or (at your option) any later version.
  */
 
-#ifndef __CAM_SRV_H__
-#define __CAM_SRV_H__
+#ifndef __HOUSE_H__
+#define __HOUSE_H__
 
 #include <stdbool.h>
-#include <stdint.h>
-
-enum recv_cmd {
-	GET_PHOTO,
-	PHOTO_OK,
-	PHOTO_FAIL
-};
-
-enum cam_list {
-	CAM_1 = 0,
-	CAM_2 = 1
-};
-
-struct command {
-	uint8_t code;
-	uint8_t cam;
-};
 
 
-bool cam_server_start(void);
+bool house_server_start(void);
 
 
 #endif
