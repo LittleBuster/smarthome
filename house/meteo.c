@@ -85,7 +85,8 @@ static void* timer_thread(void *data)
 
 bool meteo_sensors_init(void)
 {
-	gpio_init();
+	if (!gpio_init())
+		return false;
 	dht22_init(&meteo.dht_street, 2);
     dht22_init(&meteo.dht_room, 3);
     dht22_init(&meteo.dht_veranda, 4);
