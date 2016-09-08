@@ -49,6 +49,7 @@ static void new_session(struct tcp_client *s_client, void *data)
 			if (!tcp_client_send(s_client, (const void *)&answ, sizeof(struct meteo_answ))) {
 				pthread_mutex_lock(&house.mutex);
 				log_local("Fail sending meteo answ.", LOG_ERROR);
+				pthread_mutex_unlock(&house.mutex);
 				return;
 			}
 			break;
