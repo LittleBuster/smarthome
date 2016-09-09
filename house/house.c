@@ -19,6 +19,9 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <ftplib.h>
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
 
 
 static struct {
@@ -32,9 +35,9 @@ static void new_session(struct tcp_client *s_client, void *data)
 	struct command cmd;
 
 	if (!tcp_client_recv(s_client, (void *)&cmd, sizeof(struct command))) {
-		pthread_mutex_lock(house.mutex);
+		pthread_mutex_lock(&house.mutex);
 		log_local("Fail receiving command.", LOG_ERROR);
-		pthread_mutex_unlock(house.mutex);
+		pthread_mutex_unlock(&house.mutex);
 		return;
 	}
 	switch (cmd.code) {
@@ -49,6 +52,110 @@ static void new_session(struct tcp_client *s_client, void *data)
 			if (!tcp_client_send(s_client, (const void *)&answ, sizeof(struct meteo_answ))) {
 				pthread_mutex_lock(&house.mutex);
 				log_local("Fail sending meteo answ.", LOG_ERROR);
+				pthread_mutex_unlock(&house.mutex);
+				return;
+			}
+			break;
+		}
+		case GET_CAM_PHOTO: {
+			netbuf *nb;
+			char filename[255];
+			struct command answ;
+			struct ftp_cfg *fc = configs_get_ftp();
+			/*
+			 * Receiving CAM number
+			 */
+			if (!tcp_client_recv(s_client, (void *)&cmd, sizeof(struct command))) {
+				pthread_mutex_lock(&house.mutex);
+				log_local("Fail receiving cam number.", LOG_ERROR);
+				pthread_mutex_unlock(&house.mutex);
+				return;
+			}
+			/*
+	 		 * Getting photo fron CAM by OpenCV
+	 		 */
+			CvCapture* capture = cvCreateCameraCapture(cmd.code);
+			if (capture == NULL) {
+				answ.code = PHOTO_FAIL;
+				if (!tcp_client_send(s_client, &answ, sizeof(struct command))) {
+					pthread_mutex_lock(&house.mutex);
+					log_local("Fail sending answ.", LOG_ERROR);
+					pthread_mutex_unlock(&house.mutex);
+					return;
+				}
+				return;
+			}
+	
+			IplImage* frame = cvQueryFrame(capture);
+			if (frame == NULL) {
+				answ.code = PHOTO_FAIL;
+				if (!tcp_client_send(s_client, &answ, sizeof(struct command))) {
+					pthread_mutex_lock(&house.mutex);
+					log_local("Fail sending answ.", LOG_ERROR);
+					pthread_mutex_unlock(&house.mutex);
+					return;
+				}
+				return;
+			}
+			cvSaveImage("photo.jpg", frame, 0);
+			cvReleaseImage(&frame);
+			cvReleaseCapture(&capture);
+
+			/*
+	 		 * Uploading photo on FTP
+	 		 */
+			FtpInit();
+			if (!FtpConnect(fc->ip, &nb)) {
+				log_local("Fail connecting to ftp server", LOG_ERROR);
+				FtpQuit(nb);
+				answ.code = PHOTO_FAIL;
+				if (!tcp_client_send(s_client, &answ, sizeof(struct command))) {
+					pthread_mutex_lock(&house.mutex);
+					log_local("Fail sending answ.", LOG_ERROR);
+					pthread_mutex_unlock(&house.mutex);
+					return;
+				}
+				return;
+			}
+			if (!FtpLogin(fc->user, fc->passwd, nb)) {
+				log_local("Fail ftp login data", LOG_ERROR);
+				FtpQuit(nb);
+				answ.code = PHOTO_FAIL;
+				if (!tcp_client_send(s_client, &answ, sizeof(struct command))) {
+					pthread_mutex_lock(&house.mutex);
+					log_local("Fail sending answ.", LOG_ERROR);
+					pthread_mutex_unlock(&house.mutex);
+					return;
+				}
+				return;
+			}
+			char num[4];
+			sprintf(num, "%u", cmd.code);
+			strcpy(filename, "/video/photo");
+			strcat(filename, num);
+			strcat(filename, ".jpg");
+			
+			if (!FtpPut("photo.jpg", filename, FTPLIB_BINARY, nb)) {
+				log_local("Fail uploading photo on ftp", LOG_ERROR);
+				FtpQuit(nb);
+				answ.code = PHOTO_FAIL;
+				if (!tcp_client_send(s_client, &answ, sizeof(struct command))) {
+					pthread_mutex_lock(&house.mutex);
+					log_local("Fail sending answ.", LOG_ERROR);
+					pthread_mutex_unlock(&house.mutex);
+					return;
+				}
+				return;
+			}
+			FtpQuit(nb);
+
+			/*
+	 		 * Sending answ to client
+	 		 */
+			answ.code = PHOTO_OK;
+			if (!tcp_client_send(s_client, &answ, sizeof(struct command))) {
+				pthread_mutex_lock(&house.mutex);
+				log_local("Fail sending answ.", LOG_ERROR);
 				pthread_mutex_unlock(&house.mutex);
 				return;
 			}

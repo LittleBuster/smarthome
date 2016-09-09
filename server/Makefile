@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -I. -std=gnu99 -pedantic -Wno-pointer-arith -Wno-discarded-qualifiers
-LDFLAGS=-lpthread -lstlight -lcam
+LDFLAGS=-lpthread -lstlight -lhouse
 
 
 all: wserver

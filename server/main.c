@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <smarthome/stlight.h>
-#include <smarthome/cam.h>
+#include <smarthome/house.h>
 
 
 int main(void)
@@ -33,7 +33,7 @@ int main(void)
 		puts("Fail setting STREET LIGHT log path. Path is to long.");
 		return -1;
 	}
-	if (!cam_set_log("/var/log/smarthome/cam.log")) {
+	if (!house_set_log("/var/log/smarthome/house.log")) {
 		puts("Fail setting CAM log path. Path is to long.");
 		return -1;
 	}
@@ -76,17 +76,17 @@ int main(void)
 		log_local(msg, LOG_ERROR);
 		return -1;
 	}
-	ret_val = cam_load_configs("/etc/smarthome/cam.conf");
-	if (ret_val != CAM_CFG_OK) {
+	ret_val = house_load_configs("/etc/smarthome/house.conf");
+	if (ret_val != HOUSE_CFG_OK) {
 		char msg[255];
 
 		strcpy(msg, "Fail reading STREET LIGHT configs: ");
 		switch (ret_val) {			
-			case CAM_CFG_FILE_NOT_FOUND: {
+			case HOUSE_CFG_FILE_NOT_FOUND: {
 				strcat(msg, "File not found.");
 				break;
 			}
-			case CAM_CFG_PARSE_ERR: {
+			case HOUSE_CFG_PARSE_ERR: {
 				strcat(msg, "parsing error.");
 				break;
 			}

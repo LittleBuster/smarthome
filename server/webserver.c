@@ -15,7 +15,7 @@
 #include "configs.h"
 #include "pthread.h"
 #include <smarthome/stlight.h>
-#include <smarthome/cam.h>
+#include <smarthome/house.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -32,6 +32,8 @@ static bool get_parse(const char *page, char *out)
 
 	char *p_req = req;
 	while (*page) {
+		if (*page == '\n')
+			break;
 		*p_req = *page;
 		p_req++;
 		page++;
@@ -168,24 +170,64 @@ static void call_cam_module(const char *command, struct tcp_client *restrict cli
 	sscanf(params, "%u", &cam);
 
 	if (!strcmp(func, "get_photo")) {
-		if (!cam_get_photo(cam)) {
+		if (!house_cam_get_photo(cam)) {
 			log_local("Fail sending GET_PHOTO command", LOG_ERROR);
 
 			strcpy(answ, "HTTP/1.1 200 OK\r\n"
-					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
-					"{\"result\": \"fail\"}\r\n");
+						"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+						"{\"result\": \"fail\"}\r\n");
 			if (!tcp_client_send(client, answ, strlen(answ))) {
 				log_local("CAM: Fail sending answ to server", LOG_ERROR);
 			}
 		}
 		strcpy(answ, "HTTP/1.1 200 OK\r\n"
-				"Content-Type: application/json; charset=UTF-8\r\n\r\n"
-				"{\"result\": \"ok\"}\r\n");
+					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+					"{\"result\": \"ok\"}\r\n");
 		if (!tcp_client_send(client, answ, strlen(answ))) {
 			log_local("CAM: Fail sending answ to server", LOG_ERROR);
 		}
 	} else {
 		log_local("Fail parsing CAM request func.", LOG_ERROR);
+		return;
+	}
+}
+
+static void call_meteo_module(const char *command, struct tcp_client *restrict client)
+{
+	char answ[255];
+
+	if (!strcmp(command, "get_weather")) {
+		float meteo[8];
+
+		if (!house_meteo_get_data(meteo)) {
+			log_local("Fail sending GET_METEO command", LOG_ERROR);
+
+			strcpy(answ, "HTTP/1.1 200 OK\r\n"
+						"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+						"{\"result\": \"fail\"}\r\n");
+			if (!tcp_client_send(client, answ, strlen(answ))) {
+				log_local("METEO: Fail sending answ to server", LOG_ERROR);
+			}
+			return;
+		}
+		strcpy(answ, "HTTP/1.1 200 OK\r\n"
+					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+					"{\"result\": \"ok\",\"meteo\": [");
+
+		for (uint8_t i = 0; i < 8 ; i++) {
+			char meteo_num[10];
+
+			sprintf(meteo_num, "%0.2f", meteo[i]);
+			strcat(answ, meteo_num);
+			if (i != 7)
+				strcat(answ, ",");
+		}
+		strcat(answ, "]}\r\n");
+		if (!tcp_client_send(client, answ, strlen(answ))) {
+			log_local("METEO: Fail sending answ to server", LOG_ERROR);
+		}
+	} else {
+		log_local("Fail parsing meteo request func.", LOG_ERROR);
 		return;
 	}
 }
@@ -227,6 +269,11 @@ static void new_session(struct tcp_client *client, void *data)
 
 	if (!strcmp(module, "/cam")) {
 		call_cam_module(command, client);
+		return;
+	}
+
+	if (!strcmp(module, "/meteo")) {
+		call_meteo_module(command, client);
 		return;
 	}
 }

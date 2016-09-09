@@ -1,4 +1,4 @@
-/* SmartHome: CAM server library
+/* SmartHome: house server library
  *
  * Copyright (C) 2016 Sergey Denisov.
  * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
@@ -9,8 +9,8 @@
  * of the Licence, or (at your option) any later version.
  */
 
-#ifndef __CAM_H__
-#define __CAM_H__
+#ifndef __HOUSE_H__
+#define __HOUSE_H__
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -20,38 +20,54 @@ extern "C" {
 #endif
 
 /**
- * Setting log path for CAM module
+ * Setting log path for house module
  * @filename: path to log file
  *
  * returns false: if path is to long
  * returns true: if ok
  */
-bool cam_set_log(const char *filename);
+bool house_set_log(const char *filename);
 
 
-enum cam_error_codes {
-    CAM_CFG_FILE_NOT_FOUND,
-    CAM_CFG_PARSE_ERR,
-    CAM_CFG_OK
+enum house_error_codes {
+    HOUSE_CFG_FILE_NOT_FOUND,
+    HOUSE_CFG_PARSE_ERR,
+    HOUSE_CFG_OK
 };
 
 /**
- * Loading configs of CAM module
+ * Loading configs of house module
  * @filename: path to configs file
  *
  * returns CFG_OK: if reading ok
  * returns cfg_err codes: if fail reading
  */
-uint8_t cam_load_configs(const char *filename);
+uint8_t house_load_configs(const char *filename);
 
 /**
  * Getting photo from camera
- * @cam_num: number of camera
+ * @house_num: number of houseera
  *
  * returns true: if getting photo ok
  * returns false: if fail getting photo
  */
-bool cam_get_photo(uint8_t cam_num);
+bool house_cam_get_photo(uint8_t house_num);
+
+/**
+ * Getting meteo data array
+ * [0] street temp
+ * [1] street hum
+ * [2] room temp
+ * [3] room hum
+ * [4] 2nd floor temp
+ * [5] 2nd floor hum
+ * [6] veranda temp
+ * [7] veranda hum
+ *
+ * returns true: if getting photo ok
+ * returns false: if fail getting photo
+ */
+bool house_meteo_get_data(float *out_meteo);
 
 
 #ifdef __cplusplus

@@ -9,8 +9,8 @@
  * of the Licence, or (at your option) any later version.
  */
 
-#ifndef __CONFIGS_H__
-#define __CONFIGS_H__
+#ifndef __HOUSE_CONFIGS_H__
+#define __HOUSE_CONFIGS_H__
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -21,9 +21,9 @@
  * @filename: name of configs file
  *
  * returns error codes: if fail loading
- * returns CFG_OK: if succeful loading
+ * returns HOUSE_CFG_OK: if succeful loading
  */
-uint8_t cam_configs_load(const char *filename);
+uint8_t house_configs_load(const char *filename);
 
 
 struct server_cfg {
@@ -34,7 +34,7 @@ struct server_cfg {
 /*
  * Get server configs
  */
-struct server_cfg *cam_configs_get_server(void);
+struct server_cfg *house_configs_get_server(void);
 
 
 #endif

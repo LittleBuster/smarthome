@@ -1,4 +1,4 @@
-/* SmartHome: CAM server library
+/* SmartHome: house server library
  *
  * Copyright (C) 2016 Sergey Denisov.
  * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
@@ -16,10 +16,10 @@
 #include <string.h>
 
 
-enum cam_error_codes {
-    CAM_CFG_FILE_NOT_FOUND,
-    CAM_CFG_PARSE_ERR,
-    CAM_CFG_OK
+enum house_error_codes {
+    HOUSE_CFG_FILE_NOT_FOUND,
+    HOUSE_CFG_PARSE_ERR,
+    HOUSE_CFG_OK
 };
 
 enum {
@@ -28,8 +28,8 @@ enum {
 };
 
 static struct {
-    struct server_cfg csc;
-} cam_cfg;
+    struct server_cfg hsc;
+} house_cfg;
 
 
 /*
@@ -137,27 +137,27 @@ static bool configs_read_string(FILE *restrict file, char *out, size_t sz)
 /*
  * Loading configs from file
  */
-uint8_t cam_configs_load(const char *filename)
+uint8_t house_configs_load(const char *filename)
 {
     FILE *file;
 
     file = fopen(filename, "r");
     if (file == NULL)
-        return CAM_CFG_FILE_NOT_FOUND;
+        return HOUSE_CFG_FILE_NOT_FOUND;
 
-    if (!configs_read_string(file, cam_cfg.csc.ip, 15)) {
+    if (!configs_read_string(file, house_cfg.hsc.ip, 15)) {
         fclose(file);
-        return CAM_CFG_PARSE_ERR;
+        return HOUSE_CFG_PARSE_ERR;
     }
-    if (!configs_read_unsigned(file, &cam_cfg.csc.port)) {
+    if (!configs_read_unsigned(file, &house_cfg.hsc.port)) {
         fclose(file);
-        return CAM_CFG_PARSE_ERR;
+        return HOUSE_CFG_PARSE_ERR;
     }
     fclose(file);
-    return CAM_CFG_OK;
+    return HOUSE_CFG_OK;
 }
 
-struct server_cfg *cam_configs_get_server(void)
+struct server_cfg *house_configs_get_server(void)
 {
-    return &cam_cfg.csc;
+    return &house_cfg.hsc;
 }

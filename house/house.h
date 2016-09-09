@@ -13,10 +13,18 @@
 #define __HOUSE_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
+
+enum recv_cmd {
+	GET_CAM_PHOTO,
+	GET_METEO,
+	PHOTO_OK,
+	PHOTO_FAIL
+};
 
 struct command {
-	uint8_t cmd;
+	uint8_t code;
 };
 
 struct meteo_answ {
