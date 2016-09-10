@@ -43,9 +43,9 @@ static void new_session(struct tcp_client *s_client, void *data)
 			struct meteo_answ answ;
 
 			meteo_get_street_data(&answ.street_temp, &answ.street_hum);
-			meteo_get_street_data(&answ.room_temp, &answ.room_hum);
-			meteo_get_street_data(&answ.veranda_temp, &answ.veranda_hum);
-			meteo_get_street_data(&answ.second_temp, &answ.second_hum);
+			meteo_get_room_data(&answ.room_temp, &answ.room_hum);
+			meteo_get_veranda_data(&answ.veranda_temp, &answ.veranda_hum);
+			meteo_get_2nd_data(&answ.second_temp, &answ.second_hum);
 
 			if (!tcp_client_send(s_client, (const void *)&answ, sizeof(struct meteo_answ))) {
 				pthread_mutex_lock(&house.mutex);
