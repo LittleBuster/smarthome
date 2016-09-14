@@ -53,6 +53,9 @@ struct time_move_data {
 
 
 static struct {
+	bool hand_lamp1;
+	bool hand_lamp2;
+
 	unsigned time_mov1;
 	unsigned time_mov2;
 	unsigned lamps[8];
@@ -62,7 +65,9 @@ static struct {
 	struct tcp_server server;
 } stlight = {
 	.time_mov1 = 0,
-	.time_mov2 = 0
+	.time_mov2 = 0,
+	.hand_lamp1 = false,
+	.hand_lamp2 = false
 };
 
 
@@ -70,6 +75,7 @@ static void new_session(struct tcp_client *client, void *data)
 {
 	struct command cmd;
 	struct lamp_cfg *lc = configs_get_lamps();
+	struct move_detect *md = configs_get_md();
 
 	if(!tcp_client_recv(client, &cmd, sizeof(struct command))) {
 		pthread_mutex_lock(&stlight.mutex);
@@ -84,6 +90,16 @@ static void new_session(struct tcp_client *client, void *data)
 			printf("Switching ON #%d\n", (int)cmd.lamp);
 			digitalWrite(lc->lamps[cmd.lamp], LOW);
 			stlight.lamps[cmd.lamp] = 1;
+
+			/*
+			 * If not move, hand switch on
+			 */
+			if (cmd.lamp == md->lamp1)
+				stlight.hand_lamp1 = true;
+			
+			if (cmd.lamp == md->lamp2)
+				stlight.hand_lamp2 = true;
+
 			pthread_mutex_unlock(&stlight.mutex);
 			break;
 		}
@@ -92,6 +108,16 @@ static void new_session(struct tcp_client *client, void *data)
 			printf("Switching OFF #%d\n", (int)cmd.lamp);
 			digitalWrite(lc->lamps[cmd.lamp], HIGH);
 			stlight.lamps[cmd.lamp] = 0;
+
+			/*
+			 * If not move, hand switch off
+			 */
+			if (cmd.lamp == md->lamp1)
+				stlight.hand_lamp1 = false;
+			
+			if (cmd.lamp == md->lamp2)
+				stlight.hand_lamp2 = false;
+
 			pthread_mutex_unlock(&stlight.mutex);
 			break;
 		}
@@ -227,10 +253,12 @@ static void* timer_thread(void *data)
 				pthread_mutex_unlock(&stlight.mutex);
 			}
 		} else {
-			pthread_mutex_lock(&stlight.mutex);
-			digitalWrite(lc->lamps[md->lamp1], HIGH);
-			stlight.lamps[md->lamp1] = 0;
-			pthread_mutex_unlock(&stlight.mutex);
+			if (!stlight.hand_lamp1) {
+				pthread_mutex_lock(&stlight.mutex);
+				digitalWrite(lc->lamps[md->lamp1], HIGH);
+				stlight.lamps[md->lamp1] = 0;
+				pthread_mutex_unlock(&stlight.mutex);
+			}
 		}
 
 		if (stlight.time_mov2 > 0) {
@@ -248,10 +276,12 @@ static void* timer_thread(void *data)
 				pthread_mutex_unlock(&stlight.mutex);
 			}
 		} else {
-			pthread_mutex_lock(&stlight.mutex);
-			digitalWrite(lc->lamps[md->lamp2], HIGH);
-			stlight.lamps[md->lamp2] = 0;
-			pthread_mutex_unlock(&stlight.mutex);
+			if (!stlight.hand_lamp2) {
+				pthread_mutex_lock(&stlight.mutex);
+				digitalWrite(lc->lamps[md->lamp2], HIGH);
+				stlight.lamps[md->lamp2] = 0;
+				pthread_mutex_unlock(&stlight.mutex);
+			}
 		}		
         delay(500);
 	}
