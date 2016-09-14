@@ -41,9 +41,9 @@ install:
 	-chmod +x /usr/share/streetlight/stlight
 
 remove:
-	rm -rf /usr/share/streetlight
-	rm /etc/stlight.conf
-	rm /etc/mtime.conf
+	-rm -rf /usr/share/streetlight
+	-rm /etc/stlight.conf
+	-rm /etc/mtime.conf
 
 clean:
 	-rm stlight

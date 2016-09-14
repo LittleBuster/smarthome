@@ -271,8 +271,6 @@ static void* move_detect_thread(void *data)
 		pthread_mutex_lock(&stlight.mutex);
 		int mov1 = digitalRead(md->mov1);
 		int mov2 = digitalRead(md->mov2);
-
-		printf("States: 1: %d 2: %d\n", mov1, mov2);
 		pthread_mutex_unlock(&stlight.mutex);
 
 		if (mov1 == 1) {

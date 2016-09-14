@@ -35,13 +35,13 @@ static bool move_time_save(void)
 	if (f == NULL)
 		return false;
 
-	sprintf(num, "%u", mtime.ton.on_lh1);
+	sprintf(num, "%hhu", mtime.ton.on_lh1);
 	fputs(num, f);
-	sprintf(num, "%u", mtime.ton.on_lh2);
+	sprintf(num, "%hhu", mtime.ton.on_lh2);
 	fputs(num, f);
-	sprintf(num, "%u", mtime.toff.off_lh1);
+	sprintf(num, "%hhu", mtime.toff.off_lh1);
 	fputs(num, f);
-	sprintf(num, "%u", mtime.toff.off_lh2);
+	sprintf(num, "%hhu", mtime.toff.off_lh2);
 	fputs(num, f);
 
 	fclose(f);
@@ -50,6 +50,7 @@ static bool move_time_save(void)
 
 bool move_time_load(const char *filename)
 {
+	char num[5];
 	if (!strncpy(mtime.filename, filename, 254))
 		return false;
 
@@ -59,14 +60,14 @@ bool move_time_load(const char *filename)
 		return false;
 	}
 
-	fgets(num, f);
-	sscanf(num, "%u", &mtime.ton.on_lh1);
-	fgets(num, f);
-	sscanf(num, "%u", &mtime.ton.on_lh2);
-	fgets(num, f);
-	sscanf(num, "%u", &mtime.toff.off_lh1);
-	fgets(num, f);
-	sscanf(num, "%u", &mtime.toff.off_lh2);
+	fgets(num, 1, f);
+	sscanf(num, "%hhu", &mtime.ton.on_lh1);
+	fgets(num, 1, f);
+	sscanf(num, "%hhu", &mtime.ton.on_lh2);
+	fgets(num, 1, f);
+	sscanf(num, "%hhu", &mtime.toff.off_lh1);
+	fgets(num, 1, f);
+	sscanf(num, "%hhu", &mtime.toff.off_lh2);
 
 	fclose(f);
 	return true;
