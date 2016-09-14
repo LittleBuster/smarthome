@@ -112,11 +112,15 @@ static void new_session(struct tcp_client *client, void *data)
 			/*
 			 * If not move, hand switch off
 			 */
-			if (cmd.lamp == md->lamp1)
+			if (cmd.lamp == md->lamp1) {
 				stlight.hand_lamp1 = false;
+				stlight.time_mov1 = 0;
+			}
 			
-			if (cmd.lamp == md->lamp2)
+			if (cmd.lamp == md->lamp2) {
 				stlight.hand_lamp2 = false;
+				stlight.time_mov1 = 0;
+			}
 
 			pthread_mutex_unlock(&stlight.mutex);
 			break;
