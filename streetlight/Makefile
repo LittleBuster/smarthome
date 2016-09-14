@@ -37,11 +37,13 @@ install:
 	-mkdir /usr/share/streetlight/
 	-cp stlight /usr/share/streetlight/
 	-cp stlight.conf /etc/
+	-cp mtime.conf /etc/
 	-chmod +x /usr/share/streetlight/stlight
 
 remove:
 	rm -rf /usr/share/streetlight
 	rm /etc/stlight.conf
+	rm /etc/mtime.conf
 
 clean:
 	-rm stlight

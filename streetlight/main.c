@@ -13,6 +13,7 @@
 #include "configs.h"
 #include "stlight.h"
 #include "stlight.h"
+#include "movetime.h"
 #include <stdio.h>
 #include <string.h>
 #include <wiringPi.h>
@@ -25,6 +26,10 @@ int main(void)
 	wiringPiSetup();
 	if (!log_set_path("/var/log/stlight.log")) {
 		puts("Fail setting log path. Path is to long.");
+		return -1;
+	}
+	if (!move_time_load("/etc/mtime.conf")) {
+		log_local("Fail loading move time conf. Created new.", LOG_ERROR);
 		return -1;
 	}
 	ret_val = configs_load("/etc/stlight.conf");
