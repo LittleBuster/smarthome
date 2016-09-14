@@ -1,13 +1,55 @@
+/* SmartHome: Street Light application
+ *
+ * Copyright (C) 2016 Sergey Denisov.
+ * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence
+ * as published by the Free Software Foundation; either version 3
+ * of the Licence, or (at your option) any later version.
+ */
+
 #include "stlight.h"
 #include "tcpserver.h"
 #include "log.h"
 #include "configs.h"
 #include "pthread.h"
 #include "utils.h"
+#include "movetime.h"
 #include <wiringPi.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+
+
+enum {
+	SWITCH_ON,
+	SWITCH_OFF,
+	GET_STATUS,
+	SET_STATUS,
+	GET_MOVE_TIME,
+	SET_MOVE_TIME
+};
+
+struct command {
+	uint8_t code;
+	unsigned lamp;
+};
+
+struct switch_answ {
+	uint8_t code;
+};
+
+struct status_data {
+	unsigned lamps[8]; 
+};
+
+struct time_move_data {
+	uint8_t on_lh1;
+	uint8_t on_lh2;
+	uint8_t off_lh1;
+	uint8_t off_lh2;
+};
 
 
 static struct {
@@ -20,7 +62,7 @@ static struct {
 	struct tcp_server server;
 } stlight = {
 	.time_mov1 = 0,
-	.time_mov2 = 0,
+	.time_mov2 = 0
 };
 
 
@@ -92,6 +134,60 @@ static void new_session(struct tcp_client *client, void *data)
 			}
 			break;
 		}
+		case GET_MOVE_TIME: {
+			struct time_move_data tm_answ;
+
+			pthread_mutex_lock(&stlight.mutex);
+			struct time_on *ton = move_time_get_on();
+			struct time_off *toff = move_time_get_off();
+			pthread_mutex_unlock(&stlight.mutex);
+
+			tm_answ.on_lh1 = ton->on_lh1;
+			tm_answ.on_lh2 = ton->on_lh2;
+			tm_answ.off_lh1 = toff->off_lh1;
+			tm_answ.off_lh2 = toff->off_lh2;
+
+			if (!tcp_client_send(client, &tm_answ, sizeof(struct time_move_data))) {
+				pthread_mutex_lock(&stlight.mutex);
+				log_local("Fail receiving time move data", LOG_ERROR);
+				pthread_mutex_unlock(&stlight.mutex);
+				return;
+			}
+			break;
+		}
+		case SET_MOVE_TIME: {
+			struct time_move_data tmd;
+			struct time_on ton;
+			struct time_off toff;
+
+			if (!tcp_client_recv(client, &tmd, sizeof(struct time_move_data))) {
+				pthread_mutex_lock(&stlight.mutex);
+				log_local("Fail sending time move data", LOG_ERROR);
+				pthread_mutex_unlock(&stlight.mutex);
+				return;
+			}
+			pthread_mutex_lock(&stlight.mutex);
+			struct time_on *last_ton = move_time_get_on();
+			struct time_off *last_toff = move_time_get_off();
+			pthread_mutex_unlock(&stlight.mutex);
+
+			if (last_ton->on_lh1 != tmd.on_lh1 || last_ton->on_lh2 != tmd.on_lh2) {
+				pthread_mutex_lock(&stlight.mutex);
+				ton.on_lh1 = tmd.on_lh1;
+				ton.on_lh2 = tmd.on_lh2;
+				move_time_set_on(&ton);
+				pthread_mutex_unlock(&stlight.mutex);
+			}
+
+			if (last_toff->off_lh1 != tmd.off_lh1 || last_toff->off_lh2 != tmd.off_lh2) {
+				pthread_mutex_lock(&stlight.mutex);
+				toff.off_lh1 = tmd.off_lh1;
+				toff.off_lh2 = tmd.off_lh2;
+				move_time_set_off(&toff);
+				pthread_mutex_unlock(&stlight.mutex);
+			}
+			break;
+		}
 	}
 }
 
@@ -111,10 +207,10 @@ static void* timer_thread(void *data)
 	puts("Starting move detect timer...");
 
 	for (;;) {
-        	struct timeval tv = {1, 0};
-	        if (select(0, NULL, NULL, NULL, &tv) == -1)
-         		if (EINTR == errno)
-                		continue;
+		pthread_mutex_lock(&stlight.mutex);
+		struct time_on *ton = move_time_get_on();
+		struct time_off *toff = move_time_get_off();
+		pthread_mutex_unlock(&stlight.mutex);
 
 		if (stlight.time_mov1 > 0) {
 			unsigned h;
@@ -123,7 +219,7 @@ static void* timer_thread(void *data)
 			sscanf(hour, "%u", &h);
 			stlight.time_mov1--;
 
-			if (h >= 21 || h <= 7) {
+			if (h >= ton->on_lh1 || h <= toff->off_lh1) {
 				pthread_mutex_lock(&stlight.mutex);
 				printf("Moving! Switch on light # %d\n", lc->lamps[md->lamp1]);
 				digitalWrite(lc->lamps[md->lamp1], LOW);
@@ -144,7 +240,7 @@ static void* timer_thread(void *data)
 			sscanf(hour, "%u", &h);
 			stlight.time_mov2--;
 
-			if (h >= 21 || h <= 7) {
+			if (h >= ton->on_lh2 || h <= toff->off_lh2) {
 				pthread_mutex_lock(&stlight.mutex);
 				printf("Moving! Switch on light # %d\n", lc->lamps[md->lamp2]);
 				digitalWrite(lc->lamps[md->lamp2], LOW);
@@ -156,7 +252,8 @@ static void* timer_thread(void *data)
 			digitalWrite(lc->lamps[md->lamp2], HIGH);
 			stlight.lamps[md->lamp2] = 0;
 			pthread_mutex_unlock(&stlight.mutex);
-		}
+		}		
+        delay(500);
 	}
 	return NULL;
 }

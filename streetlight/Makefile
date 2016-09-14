@@ -5,8 +5,8 @@ LDFLAGS=-lpthread -lwiringPi
 
 all: stlight
 
-stlight: main.o tcpclient.o configs.o utils.o log.o tcpserver.o stlight.o
-	$(CC) main.o tcpclient.o configs.o utils.o log.o tcpserver.o stlight.o -o stlight $(CFLAGS) $(LDFLAGS)
+stlight: main.o tcpclient.o configs.o utils.o log.o tcpserver.o stlight.o movetime.o
+	$(CC) main.o tcpclient.o configs.o utils.o log.o tcpserver.o stlight.o movetime.o -o stlight $(CFLAGS) $(LDFLAGS)
 
 main.o: main.c
 	$(CC) -c main.c $(CFLAGS)
@@ -28,6 +28,9 @@ tcpserver.o: tcpserver.c
 
 stlight.o: stlight.c
 	$(CC) -c stlight.c $(CFLAGS)
+
+movetime.o: movetime.c
+	$(CC) -c movetime.c $(CFLAGS)
 
 
 install:
