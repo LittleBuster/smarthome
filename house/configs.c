@@ -24,6 +24,8 @@ enum {
 static struct {
     struct server_cfg sc;
     struct ftp_cfg fc;
+    struct security_cfg sec;
+    struct termo_cfg tc;
 } cfg;
 
 
@@ -160,6 +162,26 @@ uint8_t configs_load(const char *filename)
         fclose(file);
         return CFG_PARSE_ERR;
     }
+    if (!configs_read_unsigned(file, &cfg.sec.move)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_unsigned(file, &cfg.sec.door)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_string(file, cfg.sec.sms_id, 49)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_string(file, cfg.sec.sms_phone, 49)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_unsigned(file, &cfg.tc.warm)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
     fclose(file);
     return CFG_OK;
 }
@@ -172,4 +194,14 @@ struct server_cfg *configs_get_server(void)
 struct ftp_cfg *configs_get_ftp(void)
 {
     return &cfg.fc;
+}
+
+struct security_cfg *configs_get_security(void)
+{
+    return &cfg.sec;
+}
+
+struct termo_cfg *configs_get_termo(void)
+{
+    return &cfg.tc;
 }

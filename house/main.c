@@ -9,17 +9,22 @@
  * of the Licence, or (at your option) any later version.
  */
 
-#include "log.h"
-#include "configs.h"
 #include <stdio.h>
 #include <string.h>
+#include <wiringPi.h>
 #include "house.h"
 #include "tcpserver.h"
+#include "log.h"
+#include "configs.h"
+#include "security.h"
+#include "termo.h"
 
 
 int main(void)
 {
 	uint8_t ret_val;
+
+	wiringPiSetup();
 
 	if (!log_set_path("/var/log/house.log")) {
 		puts("Fail setting log path. Path is to long.");
@@ -43,5 +48,7 @@ int main(void)
 		log_local(msg, LOG_ERROR);
 		return -1;
 	}
+	security_start();
+	termo_start();
 	return house_server_start();
 }

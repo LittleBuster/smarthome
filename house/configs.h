@@ -55,4 +55,28 @@ struct ftp_cfg {
 struct ftp_cfg *configs_get_ftp(void);
 
 
+struct security_cfg {
+	unsigned move;
+	unsigned door;
+
+	char sms_id[50];
+	char sms_phone[50];
+};
+
+/*
+ * Security configs
+ */
+struct security_cfg *configs_get_security(void);
+
+
+struct termo_cfg {
+	unsigned warm;
+};
+
+/*
+ * Get termo control configs
+ */
+struct termo_cfg *configs_get_termo(void);
+
+
 #endif
