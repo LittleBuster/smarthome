@@ -98,6 +98,7 @@ void meteo_sensors_start_timer(void)
 {
 	pthread_create(&meteo.sens_th, NULL, &timer_thread, NULL);
 	pthread_detach(meteo.sens_th); 
+	puts("Starting meteo server...");
 }
 
 void meteo_get_street_data(float *temp, float *hum)

@@ -16,6 +16,8 @@
 #include "tcpclient.h"
 #include "meteo.h"
 #include "cam.h"
+#include "termo.h"
+#include "termotemp.h"
 #include <pthread.h>
 #include <errno.h>
 #include <stdio.h>
@@ -39,6 +41,22 @@ static void new_session(struct tcp_client *s_client, void *data)
 		return;
 	}
 	switch (cmd.code) {
+		case TERMO_ON: {
+			termo_auto_on();
+			break;
+		}
+		case TERMO_OFF: {
+			termo_auto_off();
+			break;
+		}
+		case TERMO_GET_TEMP: {
+			termo_temp_get_temp();
+			break;
+		}
+		case TERMO_SET_TEMP: {
+			termo_temp_set_temp(22);
+			break;
+		}
 		case GET_METEO: {
 			struct meteo_answ answ;
 

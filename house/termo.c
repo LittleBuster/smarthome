@@ -12,7 +12,9 @@
 #include "configs.h"
 #include "log.h"
 #include "tcpclient.h"
+#include "termotemp.h"
 #include "termo.h"
+#include "meteo.h"
 #include <wiringPi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,8 +36,19 @@ static void *termo_thread(void *data)
 
 	for (;;) {
 		if (termo.status) {
+			float warm_temp;
+			float cur_temp, cur_hum;
+			struct termo_cfg *tc = configs_get_termo();
 
-		}
+			meteo_get_room_data(&cur_temp, &cur_hum);
+			warm_temp = termo_temp_get_temp();
+
+			if (cur_temp < warm_temp)
+				digitalWrite(tc->warm, LOW);
+			else
+				digitalWrite(tc->warm, HIGH);
+		} else
+			digitalWrite(tc->warm, HIGH);
 
 		struct timeval tv = {1, 0};
 		if (select(0, NULL, NULL, NULL, &tv) == -1)

@@ -24,7 +24,7 @@ static struct {
 
 static bool termo_temp_save(void)
 {
-	char num[5];
+	char num[20];
 
 	FILE *f = fopen(ttemp.filename, "w");
 	if (f == NULL)
@@ -37,9 +37,9 @@ static bool termo_temp_save(void)
 	return true;
 }
 
-bool move_time_load(const char *filename)
+bool termo_temp_load(const char *filename)
 {
-	char num[5];
+	char num[20];
 	if (!strncpy(ttemp.filename, filename, 254))
 		return false;
 

@@ -178,13 +178,16 @@ static void call_cam_module(const char *command, struct tcp_client *restrict cli
 						"{\"result\": \"fail\"}\r\n");
 			if (!tcp_client_send(client, answ, strlen(answ))) {
 				log_local("CAM: Fail sending answ to server", LOG_ERROR);
+				return;
 			}
+			return;
 		}
 		strcpy(answ, "HTTP/1.1 200 OK\r\n"
 					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 					"{\"result\": \"ok\"}\r\n");
 		if (!tcp_client_send(client, answ, strlen(answ))) {
 			log_local("CAM: Fail sending answ to server", LOG_ERROR);
+			return;
 		}
 	} else {
 		log_local("Fail parsing CAM request func.", LOG_ERROR);

@@ -16,10 +16,14 @@
 #include "tcpclient.h"
 
 enum recv_cmd {
-	GET_PHOTO,
-	GET_METEO,
-	PHOTO_OK,
-	PHOTO_FAIL
+	TERMO_ON,
+        TERMO_OFF,
+        TERMO_GET_TEMP,
+        TERMO_SET_TEMP,
+        GET_CAM_PHOTO,
+        GET_METEO,
+        PHOTO_OK,
+        PHOTO_FAIL
 };
 
 struct command {
@@ -59,7 +63,7 @@ bool house_cam_get_photo(uint8_t cam_num)
 		house_log_local("Can not connect to house server.", HOUSE_LOG_ERROR);
 		return false;
 	}
-	cmd.code = GET_PHOTO;
+	cmd.code = GET_CAM_PHOTO;
 	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
 		tcp_client_close(&client);
 		house_log_local("Fail sending house command.", HOUSE_LOG_ERROR);

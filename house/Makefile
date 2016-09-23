@@ -62,3 +62,4 @@ remove:
 clean:
 	-rm house
 	-rm *.o
+	-rm *.jpg
