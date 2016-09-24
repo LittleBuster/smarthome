@@ -195,6 +195,124 @@ static void call_cam_module(const char *command, struct tcp_client *restrict cli
 	}
 }
 
+static void call_termo_module(const char *command, struct tcp_client *restrict client)
+{
+	char func[50];
+	char answ[255];
+	char mode[10];
+
+	if (!strcmp(command, "get_status")) {
+		uint8_t status = 0;
+
+		if (!house_termo_get_status(&status)) {
+			log_local("Fail sending TERMO_GET_STATUS command", LOG_ERROR);
+			strcpy(answ, "HTTP/1.1 200 OK\r\n"
+					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+					"{\"result\": \"fail\"}\r\n");
+			if (!tcp_client_send(client, answ, strlen(answ))) {
+				log_local("TERMO: Fail sending answ to server", LOG_ERROR);
+				return;
+			}
+			return;
+		}
+		strcpy(answ, "HTTP/1.1 200 OK\r\n"
+				"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+				"{\"result\": \"ok\", \"status\": ");
+		if (status == 1)
+			strcat(answ, "1");
+		else
+			strcat(answ, "0");
+		strcat(answ, "}\r\n");
+		if (!tcp_client_send(client, answ, strlen(answ))) {
+			log_local("TERMO: Fail sending answ to server", LOG_ERROR);
+			return;
+		}
+		return;
+	}
+	
+	if (!strcmp(command, "get_temp")) {
+		char ntemp[20];
+		float temp;
+
+		if (!house_termo_get_temp(&temp)) {
+			log_local("Fail sending TERMO_GET_TEMP command", LOG_ERROR);
+			strcpy(answ, "HTTP/1.1 200 OK\r\n"
+					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+					"{\"result\": \"fail\"}\r\n");
+			if (!tcp_client_send(client, answ, strlen(answ))) {
+				log_local("TERMO: Fail sending answ to server", LOG_ERROR);
+				return;
+			}
+			return;
+		}
+		strcpy(answ, "HTTP/1.1 200 OK\r\n"
+				"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+				"{\"result\": \"ok\", \"temp\": ");
+
+		sprintf(ntemp, "%.2f", temp);
+		strcat(answ, ntemp);
+
+		strcat(answ, "}\r\n");
+		if (!tcp_client_send(client, answ, strlen(answ))) {
+			log_local("TERMO: Fail sending answ to server", LOG_ERROR);
+			return;
+		}
+		return;
+	}	
+
+	char *params = strtok((const char *)command, "=");
+	if (params == NULL) {
+		log_local("Fail parsing CAM request params.", LOG_ERROR);
+		return;
+	}
+	strcpy(func, params);
+	params = strtok(NULL, "=");
+	if (params == NULL) {
+		log_local("Fail parsing CAM request params.", LOG_ERROR);
+		return;
+	}
+	strcpy(mode, params);
+
+	if (!strcmp(func, "termo_control")) {
+		if (!strcmp(mode, "on")) {
+			if (!house_termo_control_on()) {
+				log_local("Fail sending TERMO_ON command", LOG_ERROR);
+				strcpy(answ, "HTTP/1.1 200 OK\r\n"
+						"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+						"{\"result\": \"fail\"}\r\n");
+				if (!tcp_client_send(client, answ, strlen(answ))) {
+					log_local("TERMO: Fail sending answ to server", LOG_ERROR);
+					return;
+				}
+				return;
+			}
+		}
+		if (!strcmp(mode, "off")) {
+			if (!house_termo_control_off()) {
+				log_local("Fail sending TERMO_OFF command", LOG_ERROR);
+				strcpy(answ, "HTTP/1.1 200 OK\r\n"
+						"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+						"{\"result\": \"fail\"}\r\n");
+				if (!tcp_client_send(client, answ, strlen(answ))) {
+					log_local("TERMO: Fail sending answ to server", LOG_ERROR);
+					return;
+				}
+				return;
+			}
+		}
+		strcpy(answ, "HTTP/1.1 200 OK\r\n"
+					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+					"{\"result\": \"ok\"}\r\n");
+		if (!tcp_client_send(client, answ, strlen(answ))) {
+			log_local("TERMO: Fail sending answ to server", LOG_ERROR);
+			return;
+		}
+	} else {
+		log_local("Fail parsing TERMO request func.", LOG_ERROR);
+		return;
+	}
+}
+
 static void call_meteo_module(const char *command, struct tcp_client *restrict client)
 {
 	char answ[255];
@@ -277,6 +395,11 @@ static void new_session(struct tcp_client *client, void *data)
 
 	if (!strcmp(module, "/meteo")) {
 		call_meteo_module(command, client);
+		return;
+	}
+
+	if (!strcmp(module, "/termo")) {
+		call_termo_module(command, client);
 		return;
 	}
 }

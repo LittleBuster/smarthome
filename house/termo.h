@@ -21,12 +21,22 @@ void termo_start(void);
 /*
  * Termo control on
  */
-void termo_auto_on(void);
+void termo_control_on(void);
 
 /*
  * Termo control off
  */
-void termo_auto_off(void);
+void termo_control_off(void);
+
+/*
+ * Getting control status (on/off)
+ */
+void termo_get_status(uint8_t *status);
+
+/*
+ * Getting max temp
+ */
+void termo_get_temp(float *temp);
 
 
 #endif

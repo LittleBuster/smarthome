@@ -21,6 +21,7 @@ enum recv_cmd {
 	TERMO_OFF,
 	TERMO_GET_TEMP,
 	TERMO_SET_TEMP,
+	TERMO_GET_STATUS,
 	GET_CAM_PHOTO,
 	GET_METEO,
 	PHOTO_OK,
@@ -40,6 +41,14 @@ struct meteo_answ {
 	float second_hum;
 	float veranda_temp;
 	float veranda_hum;
+};
+
+struct termo_stat_answ {
+	uint8_t status;
+};
+
+struct termo_temp_answ {
+	float temp;
 };
 
 

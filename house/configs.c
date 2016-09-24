@@ -22,6 +22,8 @@ enum {
 };
 
 static struct {
+    char filename[255];
+
     struct server_cfg sc;
     struct ftp_cfg fc;
     struct security_cfg sec;
@@ -98,9 +100,19 @@ static bool parse_unsigned(const char *str, unsigned *out)
     return true;
 }
 
+static bool parse_float(const char *str, float *out)
+{
+    char outs[50];
+
+    if (!parse_string(str, outs, 50))
+        return false;
+
+    sscanf(outs, "%f", out); 
+    return true;
+}
+
 static bool configs_read_unsigned(FILE *restrict file, unsigned *out)
 {
-    bool is_ok = false;
     char data[50];
 
     while (!feof(file)) {
@@ -110,8 +122,19 @@ static bool configs_read_unsigned(FILE *restrict file, unsigned *out)
             return true;
     }
 
-    if (!is_ok)
-        return false;
+    return true;
+}
+
+static bool configs_read_float(FILE *restrict file, float *out)
+{
+    char data[50];
+
+    while (!feof(file)) {
+        if (fgets(data, 50, file) == NULL)
+            return false;
+        if (parse_float(data, out))
+            return true;
+    }
     return true;
 }
 
@@ -137,6 +160,8 @@ static bool configs_read_string(FILE *restrict file, char *out, size_t sz)
 uint8_t configs_load(const char *filename)
 {
     FILE *file;
+
+    strncpy(cfg.filename, filename, 255);
 
     file = fopen(filename, "r");
     if (file == NULL)
@@ -178,7 +203,7 @@ uint8_t configs_load(const char *filename)
         fclose(file);
         return CFG_PARSE_ERR;
     }
-    if (!configs_read_unsigned(file, &cfg.tc.warm)) {
+    if (!configs_read_unsigned(file, &cfg.tc.tpin)) {
         fclose(file);
         return CFG_PARSE_ERR;
     }
@@ -204,4 +229,60 @@ struct security_cfg *configs_get_security(void)
 struct termo_cfg *configs_get_termo(void)
 {
     return &cfg.tc;
+}
+
+/*
+ * Termo configs
+ */
+static struct {
+	float temp;
+} tcfg;
+
+
+static bool configs_write_float(FILE *restrict file, const char *param, const float value)
+{
+	fprintf(file, "%s = %.2f\n", param, value);
+	return true;
+}
+
+uint8_t configs_termo_load(const char *filename)
+{
+    FILE *file;
+
+    file = fopen(filename, "r");
+    if (file == NULL)
+        return CFG_FILE_NOT_FOUND;
+
+    if (!configs_read_float(file, &tcfg.temp)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    fclose(file);
+    return CFG_OK;
+}
+
+uint8_t configs_termo_save(const char *filename)
+{
+    FILE *file;
+
+    file = fopen(filename, "w");
+    if (file == NULL)
+        return CFG_FILE_BUSY;
+
+    if (!configs_write_float(file, "termo_temp", tcfg.temp)) {
+        fclose(file);
+        return CFG_WRITE_ERR;
+    }
+    fclose(file);
+    return CFG_OK;
+}
+
+void configs_termo_set_temp(const float temp)
+{
+	tcfg.temp = temp;	
+}
+
+float configs_termo_get_temp(void)
+{
+	return tcfg.temp;	
 }

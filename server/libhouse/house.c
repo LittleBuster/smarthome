@@ -20,6 +20,7 @@ enum recv_cmd {
         TERMO_OFF,
         TERMO_GET_TEMP,
         TERMO_SET_TEMP,
+	TERMO_GET_STATUS,
         GET_CAM_PHOTO,
         GET_METEO,
         PHOTO_OK,
@@ -39,6 +40,14 @@ struct meteo_answ {
 	float second_hum;
 	float veranda_temp;
 	float veranda_hum;
+};
+
+struct termo_stat_answ {
+	uint8_t status;
+};
+
+struct termo_temp_answ {
+	float temp;
 };
 
 
@@ -119,6 +128,100 @@ bool house_meteo_get_data(float *out_meteo)
 	out_meteo[5] = answ.second_hum;
 	out_meteo[6] = answ.veranda_temp;
 	out_meteo[7] = answ.veranda_hum;
+	tcp_client_close(&client);
+	return true;
+}
+
+bool house_termo_control_on(void)
+{
+	struct command cmd;
+	struct tcp_client client;
+	struct server_cfg *hsc = house_configs_get_server();
+
+	if (!tcp_client_connect(&client, hsc->ip, hsc->port)) {
+		house_log_local("Can not connect to house server.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	cmd.code = TERMO_ON;
+	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
+		tcp_client_close(&client);
+		house_log_local("Fail sending termo on house command.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	tcp_client_close(&client);
+	return true;
+}
+
+bool house_termo_control_off(void)
+{
+	struct command cmd;
+	struct tcp_client client;
+	struct server_cfg *hsc = house_configs_get_server();
+
+	if (!tcp_client_connect(&client, hsc->ip, hsc->port)) {
+		house_log_local("Can not connect to house server.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	cmd.code = TERMO_OFF;
+	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
+		tcp_client_close(&client);
+		house_log_local("Fail sending termo on house command.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	tcp_client_close(&client);
+	return true;
+}
+
+bool house_termo_get_status(uint8_t *status)
+{
+	struct command cmd;
+	struct termo_stat_answ answ;
+	struct tcp_client client;
+	struct server_cfg *hsc = house_configs_get_server();
+
+	if (!tcp_client_connect(&client, hsc->ip, hsc->port)) {
+		house_log_local("Can not connect to house server.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	cmd.code = TERMO_GET_STATUS;
+	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
+		tcp_client_close(&client);
+		house_log_local("Fail sending house command.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	if (!tcp_client_recv(&client, &answ, sizeof(struct termo_stat_answ))) {
+		tcp_client_close(&client);
+		house_log_local("Fail receiving house answ.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	*status = answ.status;
+	tcp_client_close(&client);
+	return true;
+}
+
+bool house_termo_get_temp(float *temp)
+{
+	struct command cmd;
+	struct termo_temp_answ answ;
+	struct tcp_client client;
+	struct server_cfg *hsc = house_configs_get_server();
+
+	if (!tcp_client_connect(&client, hsc->ip, hsc->port)) {
+		house_log_local("Can not connect to house server.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	cmd.code = TERMO_GET_TEMP;
+	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
+		tcp_client_close(&client);
+		house_log_local("Fail sending house command.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	if (!tcp_client_recv(&client, &answ, sizeof(struct termo_temp_answ))) {
+		tcp_client_close(&client);
+		house_log_local("Fail receiving house answ.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	*temp = answ.temp;
 	tcp_client_close(&client);
 	return true;
 }

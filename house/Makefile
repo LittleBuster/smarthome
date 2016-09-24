@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -I. -std=gnu99 -pedantic -march=native -O2 -Wno-pointer-arith
 LDFLAGS=-lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lftp -lwiringPi
-OUTLIST=main.o tcpclient.o configs.o utils.o log.o tcpserver.o house.o meteo.o dht22.o gpio.o cam.o security.o termo.o termotemp.o
+OUTLIST=main.o tcpclient.o configs.o utils.o log.o tcpserver.o house.o meteo.o dht22.o gpio.o cam.o security.o termo.o
 
 
 all: house
@@ -47,9 +47,6 @@ security.o: security.c
 
 termo.o: termo.c
 	$(CC) -c termo.c $(CFLAGS)
-
-termotemp.o: termotemp.c
-	$(CC) -c termotemp.c $(CFLAGS)
 
 install:
 	cp house.conf /etc/

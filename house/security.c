@@ -51,6 +51,9 @@ static bool send_sms(const char *message)
 				 "DNT: 1\r\n"
 				 "Connection: keep-alive\r\n"
 				 "Upgrade-Insecure-Requests: 1\r\n");
+
+	puts(data);
+	return true; //debug;
 	/*
 	 * Connecting to SMS.ru
 	 */
@@ -87,13 +90,10 @@ static void *security_thread(void *data)
 		if (dr) {
 			pthread_create(&security.alarm_th, NULL, &alarm_thread, NULL);
 			pthread_detach(security.alarm_th);
+			send_sms("DACHA:+WARNING!!!+Vori+lezut+v+deverb!!!");
 			break;
 		}
-
-		struct timeval tv = {1, 0};
-		if (select(0, NULL, NULL, NULL, &tv) == -1)
-    		if (EINTR == errno)
-    			continue;
+		delay(1000);
 	}
 	return NULL;
 }

@@ -69,6 +69,33 @@ bool house_cam_get_photo(uint8_t house_num);
  */
 bool house_meteo_get_data(float *out_meteo);
 
+/*
+ * Start termo control timer
+ */
+bool house_termo_control_on(void);
+
+/*
+ * Stop termo control timer
+ */
+bool house_termo_control_off(void);
+
+/**
+ * Get termo max temperature
+ * @temp: out max temp
+ *
+ * returns true: if ok
+ * returns false: if fail getting
+ */
+bool house_termo_get_temp(float *temp);
+
+/*
+ * Get termo status
+ *
+ * returns true: if ok
+ * returns false: if fail getting
+ */
+bool house_termo_get_status(uint8_t *status);
+
 
 #ifdef __cplusplus
 }

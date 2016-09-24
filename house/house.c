@@ -17,7 +17,6 @@
 #include "meteo.h"
 #include "cam.h"
 #include "termo.h"
-#include "termotemp.h"
 #include <pthread.h>
 #include <errno.h>
 #include <stdio.h>
@@ -42,19 +41,41 @@ static void new_session(struct tcp_client *s_client, void *data)
 	}
 	switch (cmd.code) {
 		case TERMO_ON: {
-			termo_auto_on();
+			puts("Termo control switching on");
+			termo_control_on();
 			break;
 		}
 		case TERMO_OFF: {
-			termo_auto_off();
+			puts("Termo control switching off");
+			termo_control_off();
 			break;
 		}
 		case TERMO_GET_TEMP: {
-			termo_temp_get_temp();
+			struct termo_temp_answ answ;
+
+			termo_get_temp(&answ.temp);
+
+			if (!tcp_client_send(s_client, (const void *)&answ, sizeof(struct termo_temp_answ))) {
+				pthread_mutex_lock(&house.mutex);
+				log_local("Fail sending termo temp answ.", LOG_ERROR);
+				pthread_mutex_unlock(&house.mutex);
+				return;
+			}
 			break;
 		}
 		case TERMO_SET_TEMP: {
-			termo_temp_set_temp(22);
+			break;
+		}
+		case TERMO_GET_STATUS: {
+			struct termo_stat_answ answ;
+
+			termo_get_status(&answ.status);
+			if (!tcp_client_send(s_client, (const void *)&answ, sizeof(struct termo_stat_answ))) {
+				pthread_mutex_lock(&house.mutex);
+				log_local("Fail sending termo status answ.", LOG_ERROR);
+				pthread_mutex_unlock(&house.mutex);
+				return;
+			}
 			break;
 		}
 		case GET_METEO: {

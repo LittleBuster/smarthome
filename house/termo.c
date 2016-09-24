@@ -12,7 +12,6 @@
 #include "configs.h"
 #include "log.h"
 #include "tcpclient.h"
-#include "termotemp.h"
 #include "termo.h"
 #include "meteo.h"
 #include <wiringPi.h>
@@ -36,24 +35,21 @@ static void *termo_thread(void *data)
 
 	for (;;) {
 		if (termo.status) {
-			float warm_temp;
+			float max_temp;
 			float cur_temp, cur_hum;
 			struct termo_cfg *tc = configs_get_termo();
 
 			meteo_get_room_data(&cur_temp, &cur_hum);
-			warm_temp = termo_temp_get_temp();
+			max_temp = configs_termo_get_temp();
 
-			if (cur_temp < warm_temp)
-				digitalWrite(tc->warm, LOW);
+			if (cur_temp < max_temp)
+				digitalWrite(tc->tpin, LOW);
 			else
-				digitalWrite(tc->warm, HIGH);
+				digitalWrite(tc->tpin, HIGH);
 		} else
-			digitalWrite(tc->warm, HIGH);
+			digitalWrite(tc->tpin, HIGH);
 
-		struct timeval tv = {1, 0};
-		if (select(0, NULL, NULL, NULL, &tv) == -1)
-    		if (EINTR == errno)
-    			continue;
+		delay(1000);
 	}
 	return NULL;
 }
@@ -61,17 +57,31 @@ static void *termo_thread(void *data)
 
 void termo_start(void)
 {
+	struct termo_cfg *tc = configs_get_termo();
+
+	pinMode(tc->tpin, OUTPUT);
 	pthread_create(&termo.term_th, NULL, &termo_thread, NULL);
 	pthread_detach(termo.term_th);
 	puts("Starting termo control...");
 }
 
-void termo_auto_on(void)
+void termo_control_on(void)
 {
 	termo.status = true;
 }
 
-void termo_auto_off(void)
+void termo_control_off(void)
 {
 	termo.status = false;
+}
+
+void termo_get_status(uint8_t *status)
+{
+	*status = termo.status;
+}
+
+void termo_get_temp(float *temp)
+{
+	*temp = configs_termo_get_temp();	
+	printf("%f", configs_termo_get_temp());
 }

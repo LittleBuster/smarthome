@@ -18,7 +18,9 @@
 
 enum error_codes {
 	CFG_FILE_NOT_FOUND,
+	CFG_FILE_BUSY,
 	CFG_PARSE_ERR,
+	CFG_WRITE_ERR,
 	CFG_OK
 };
 
@@ -27,7 +29,7 @@ enum error_codes {
  * @filename: name of configs file
  *
  * returns error codes: if fail loading
- * returns CFG_OK: if succeful loading
+ * returns CFG_OK: if succeful loaded
  */
 uint8_t configs_load(const char *filename);
 
@@ -70,13 +72,41 @@ struct security_cfg *configs_get_security(void);
 
 
 struct termo_cfg {
-	unsigned warm;
+	unsigned tpin;
 };
 
 /*
  * Get termo control configs
  */
 struct termo_cfg *configs_get_termo(void);
+
+/**
+ * Loading termo configs from file to RAM
+ * @filename: name of termo configs file
+ *
+ * returns error codes: if fail loading
+ * returns CFG_OK: if succeful loading
+ */
+uint8_t configs_termo_load(const char *filename);
+
+/**
+ * Saving termo configs to file from RAM
+ * @filename: name of termo configs file
+ *
+ * returns error codes: if fail loading
+ * returns CFG_OK: if succeful saved
+ */
+uint8_t configs_termo_save(const char *filename);
+
+/*
+ * Set termocontrol temperature
+ */
+void configs_termo_set_temp(const float temp);
+
+/*
+ * Set termocontrol temperature
+ */
+float configs_termo_get_temp(void);
 
 
 #endif
