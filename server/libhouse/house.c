@@ -16,11 +16,14 @@
 #include "tcpclient.h"
 
 enum recv_cmd {
-	TERMO_ON,
+		TERMO_ON,
         TERMO_OFF,
         TERMO_GET_TEMP,
         TERMO_SET_TEMP,
-	TERMO_GET_STATUS,
+		TERMO_GET_STATUS,
+		SECURITY_SET_ON,
+		SECURITY_SET_OFF,
+		SECURITY_GET_STATUS,
         GET_CAM_PHOTO,
         GET_METEO,
         PHOTO_OK,
@@ -40,6 +43,10 @@ struct meteo_answ {
 	float second_hum;
 	float veranda_temp;
 	float veranda_hum;
+};
+
+struct sec_stat_answ {
+	uint8_t status;
 };
 
 struct termo_stat_answ {
@@ -73,18 +80,18 @@ bool house_cam_get_photo(uint8_t cam_num)
 		return false;
 	}
 	cmd.code = GET_CAM_PHOTO;
-	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
+	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
 		tcp_client_close(&client);
 		house_log_local("Fail sending house command.", HOUSE_LOG_ERROR);
 		return false;
 	}
 	cmd.code = cam_num;
-	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
+	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
 		tcp_client_close(&client);
 		house_log_local("Fail sending cam number.", HOUSE_LOG_ERROR);
 		return false;
 	}
-	if (!tcp_client_recv(&client, &answ, sizeof(struct command))) {
+	if (!tcp_client_recv(&client, (void *)&answ, sizeof(struct command))) {
 		tcp_client_close(&client);
 		house_log_local("Fail receiving house answ.", HOUSE_LOG_ERROR);
 		return false;
@@ -110,12 +117,12 @@ bool house_meteo_get_data(float *out_meteo)
 		return false;
 	}
 	cmd.code = GET_METEO;
-	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
+	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
 		tcp_client_close(&client);
 		house_log_local("Fail sending house command.", HOUSE_LOG_ERROR);
 		return false;
 	}
-	if (!tcp_client_recv(&client, &answ, sizeof(struct meteo_answ))) {
+	if (!tcp_client_recv(&client, (void *)&answ, sizeof(struct meteo_answ))) {
 		tcp_client_close(&client);
 		house_log_local("Fail receiving house answ.", HOUSE_LOG_ERROR);
 		return false;
@@ -143,7 +150,7 @@ bool house_termo_control_on(void)
 		return false;
 	}
 	cmd.code = TERMO_ON;
-	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
+	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
 		tcp_client_close(&client);
 		house_log_local("Fail sending termo on house command.", HOUSE_LOG_ERROR);
 		return false;
@@ -163,7 +170,7 @@ bool house_termo_control_off(void)
 		return false;
 	}
 	cmd.code = TERMO_OFF;
-	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
+	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
 		tcp_client_close(&client);
 		house_log_local("Fail sending termo on house command.", HOUSE_LOG_ERROR);
 		return false;
@@ -184,12 +191,12 @@ bool house_termo_get_status(uint8_t *status)
 		return false;
 	}
 	cmd.code = TERMO_GET_STATUS;
-	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
+	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
 		tcp_client_close(&client);
 		house_log_local("Fail sending house command.", HOUSE_LOG_ERROR);
 		return false;
 	}
-	if (!tcp_client_recv(&client, &answ, sizeof(struct termo_stat_answ))) {
+	if (!tcp_client_recv(&client, (void *)&answ, sizeof(struct termo_stat_answ))) {
 		tcp_client_close(&client);
 		house_log_local("Fail receiving house answ.", HOUSE_LOG_ERROR);
 		return false;
@@ -211,17 +218,84 @@ bool house_termo_get_temp(float *temp)
 		return false;
 	}
 	cmd.code = TERMO_GET_TEMP;
-	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
+	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
 		tcp_client_close(&client);
 		house_log_local("Fail sending house command.", HOUSE_LOG_ERROR);
 		return false;
 	}
-	if (!tcp_client_recv(&client, &answ, sizeof(struct termo_temp_answ))) {
+	if (!tcp_client_recv(&client, (void *)&answ, sizeof(struct termo_temp_answ))) {
 		tcp_client_close(&client);
 		house_log_local("Fail receiving house answ.", HOUSE_LOG_ERROR);
 		return false;
 	}
 	*temp = answ.temp;
+	tcp_client_close(&client);
+	return true;
+}
+
+bool house_security_set_on(void)
+{
+	struct command cmd;
+	struct tcp_client client;
+	struct server_cfg *hsc = house_configs_get_server();
+
+	if (!tcp_client_connect(&client, hsc->ip, hsc->port)) {
+		house_log_local("Can not connect to house server.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	cmd.code = SECURITY_SET_ON;
+	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
+		tcp_client_close(&client);
+		house_log_local("Fail sending security on house command.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	tcp_client_close(&client);
+	return true;
+}
+
+bool house_security_set_off(void)
+{
+	struct command cmd;
+	struct tcp_client client;
+	struct server_cfg *hsc = house_configs_get_server();
+
+	if (!tcp_client_connect(&client, hsc->ip, hsc->port)) {
+		house_log_local("Can not connect to house server.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	cmd.code = SECURITY_SET_OFF;
+	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
+		tcp_client_close(&client);
+		house_log_local("Fail sending security on house command.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	tcp_client_close(&client);
+	return true;
+}
+
+bool house_security_get_status(uint8_t *status)
+{
+	struct command cmd;
+	struct sec_stat_answ answ;
+	struct tcp_client client;
+	struct server_cfg *hsc = house_configs_get_server();
+
+	if (!tcp_client_connect(&client, hsc->ip, hsc->port)) {
+		house_log_local("Can not connect to house server.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	cmd.code = SECURITY_GET_STATUS;
+	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
+		tcp_client_close(&client);
+		house_log_local("Fail sending house command.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	if (!tcp_client_recv(&client, (void *)&answ, sizeof(struct sec_stat_answ))) {
+		tcp_client_close(&client);
+		house_log_local("Fail receiving house answ.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	*status = answ.status;
 	tcp_client_close(&client);
 	return true;
 }

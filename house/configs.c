@@ -203,6 +203,14 @@ uint8_t configs_load(const char *filename)
         fclose(file);
         return CFG_PARSE_ERR;
     }
+    if (!configs_read_unsigned(file, &cfg.sec.alarm_room)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_unsigned(file, &cfg.sec.alarm_street)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
     if (!configs_read_unsigned(file, &cfg.tc.tpin)) {
         fclose(file);
         return CFG_PARSE_ERR;

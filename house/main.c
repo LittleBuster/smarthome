@@ -30,10 +30,8 @@ int main(void)
 		puts("Fail setting log path. Path is to long.");
 		return -1;
 	}
-	if (configs_termo_load("/etc/termo.conf") != CFG_OK) {
+	if (configs_termo_load("/etc/termo.conf") != CFG_OK)
 		log_local("Fail loading termo configs.", LOG_WARNING);
-		return -1;
-	}
 
 	ret_val = configs_load("/etc/house.conf");
 	if (ret_val != CFG_OK) {

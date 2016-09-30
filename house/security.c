@@ -17,6 +17,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <stdbool.h>
+#include <curl/curl.h>
  
 
 static struct {
@@ -27,71 +29,94 @@ static struct {
 
 	bool status;
 
+	uint8_t move_cnt;
+	unsigned time;
+	char msg[255];
 } security = {
-	.status = true,
+	.status = false,
+	.time = 0,
+	.move_cnt = 0
 };
+
 
 static bool send_sms(const char *message)
 {
 	char data[1024];
+	CURL *curl_handle;
 	struct security_cfg *sec = configs_get_security();
 	
-	strcpy(data, "GET /sms/send?api_id=");
+	strcpy(data, "http://sms.ru/sms/send?api_id=");
 	strcat(data, sec->sms_id);
 	strcat(data, "&to=");
 	strcat(data, sec->sms_phone);
 	strcat(data, "&text=");
 	strcat(data, message);
-	strcat(data, " HTTP/1.1\r\n");
-	strcat(data, "Host: sms.ru\r\n"
-				 "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0\r\n"
-				 "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
-				 "Accept-Language: en-US,en;q=0.5\r\n"
-				 "Accept-Encoding: gzip, deflate\r\n"
-				 "DNT: 1\r\n"
-				 "Connection: keep-alive\r\n"
-				 "Upgrade-Insecure-Requests: 1\r\n");
 
-	puts(data);
-	return true; //debug;
-	/*
-	 * Connecting to SMS.ru
-	 */
-	if (!tcp_client_connect(&security.client, "89.188.102.66", 80)) {
-		log_local("Fail connecting to SMS server.", LOG_ERROR);
-		return false;
+    curl_handle = curl_easy_init();
+    if (curl_handle) {
+        curl_easy_setopt(curl_handle, CURLOPT_URL, data);
+        curl_easy_perform(curl_handle);
+        curl_easy_cleanup(curl_handle);
+        return true;
 	}
-	if (!tcp_client_send(&security.client, data, strlen(data))) {
-		log_local("Fail sending SMS.", LOG_ERROR);
-		tcp_client_close(&security.client);
-		return false;
-	}
-	tcp_client_close(&security.client);
-	return true;
+	return false;
 }
 
 static void *alarm_thread(void *data)
 {
+	struct security_cfg *sec = (struct security_cfg *)data;
+
+	for (uint8_t i = 0; i < 20; i++) {
+		if (send_sms(security.msg))
+			break;
+		else
+			log_local("Fail sending security SMS.", LOG_ERROR);
+	}
+
 	for (;;) {
+		digitalWrite(sec->alarm_room, LOW);
+		digitalWrite(sec->alarm_street, HIGH);
 		delay(500);
-		delay(1000);
+		digitalWrite(sec->alarm_room, HIGH);
+		digitalWrite(sec->alarm_street, LOW);
+		delay(500);
 	}
 	return NULL;
 }
 
 static void *security_thread(void *data)
 {
-	struct security_cfg *sec = configs_get_security();
+	struct security_cfg *sec = (struct security_cfg *)data;
 
 	for (;;) {
-		uint8_t mv = digitalRead(sec->move);
-		uint8_t dr = digitalRead(sec->door);
+		if (security.status) {
+			uint8_t mv = digitalRead(sec->move);
+			uint8_t dr = digitalRead(sec->door);
 
-		if (dr) {
-			pthread_create(&security.alarm_th, NULL, &alarm_thread, NULL);
-			pthread_detach(security.alarm_th);
-			send_sms("DACHA:+WARNING!!!+Vori+lezut+v+deverb!!!");
-			break;
+			if (mv == 1) {
+				security.move_cnt++;
+				if (security.move_cnt == 3) {
+					puts("Security: Moving detected!");
+					strcpy(security.msg, "DACHA:+WARNING!!!+Motion+detected!");
+					pthread_create(&security.alarm_th, NULL, &alarm_thread, (void *)sec);
+					pthread_detach(security.alarm_th);
+					break;
+				}
+				delay(4000);
+			}
+
+			if (dr == 0) {
+				puts("Security: Door detected!");
+				strcpy(security.msg, "DACHA:+WARNING!!!+Door+is+opened!");
+				pthread_create(&security.alarm_th, NULL, &alarm_thread, (void *)sec);
+				pthread_detach(security.alarm_th);
+				break;
+			}
+		}
+		security.time++;
+		if (security.time == 300) {
+			security.time = 0;
+			security.move_cnt = 0;
 		}
 		delay(1000);
 	}
@@ -101,7 +126,17 @@ static void *security_thread(void *data)
 
 void security_start(void)
 {
-	pthread_create(&security.sec_th, NULL, &security_thread, NULL);
+	struct security_cfg *sec = configs_get_security();
+
+	pinMode(sec->move, INPUT);
+	pinMode(sec->door, INPUT);
+	pinMode(sec->alarm_room, OUTPUT);
+	pinMode(sec->alarm_street, OUTPUT);
+
+	digitalWrite(sec->alarm_room, LOW);
+	digitalWrite(sec->alarm_street, LOW);
+
+	pthread_create(&security.sec_th, NULL, &security_thread, (void *)sec);
 	pthread_detach(security.sec_th);
 	puts("Starting security module...");
 }
@@ -109,14 +144,19 @@ void security_start(void)
 void security_set_on(void)
 {
 	security.status = true;
+	puts("Security is on.");
 }
 
 void security_set_off(void)
 {
 	security.status = false;
+	puts("Security is off.");
 }
 
-bool security_get_status(void)
+void security_get_status(uint8_t *status)
 {
-	return security.status;
+	if (security.status)
+		*status = 1;
+	else
+		*status = 0;
 }

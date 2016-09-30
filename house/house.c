@@ -17,6 +17,7 @@
 #include "meteo.h"
 #include "cam.h"
 #include "termo.h"
+#include "security.h"
 #include <pthread.h>
 #include <errno.h>
 #include <stdio.h>
@@ -73,6 +74,26 @@ static void new_session(struct tcp_client *s_client, void *data)
 			if (!tcp_client_send(s_client, (const void *)&answ, sizeof(struct termo_stat_answ))) {
 				pthread_mutex_lock(&house.mutex);
 				log_local("Fail sending termo status answ.", LOG_ERROR);
+				pthread_mutex_unlock(&house.mutex);
+				return;
+			}
+			break;
+		}
+		case SECURITY_SET_ON: {
+			security_set_on();
+			break;
+		}
+		case SECURITY_SET_OFF: {
+			security_set_off();
+			break;
+		}
+		case SECURITY_GET_STATUS: {
+			struct sec_stat_answ answ;
+
+			security_get_status(&answ.status);
+			if (!tcp_client_send(s_client, (const void *)&answ, sizeof(struct sec_stat_answ))) {
+				pthread_mutex_lock(&house.mutex);
+				log_local("Fail sending security status answ.", LOG_ERROR);
 				pthread_mutex_unlock(&house.mutex);
 				return;
 			}

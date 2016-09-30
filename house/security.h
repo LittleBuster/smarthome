@@ -12,7 +12,7 @@
 #ifndef __SECURITY_H__
 #define __SECURITY_H__
 
-#include <stdbool.h>
+#include <stdint.h>
 
 /*
  * Starting security module
@@ -32,7 +32,7 @@ void security_set_off(void);
 /*
  * Get On/Off status
  */
-bool security_get_status(void);
+void security_get_status(uint8_t *status);
 
 
 #endif

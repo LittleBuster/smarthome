@@ -96,6 +96,31 @@ bool house_termo_get_temp(float *temp);
  */
 bool house_termo_get_status(uint8_t *status);
 
+/*
+ * Security module ON
+ *
+ * returns true: if ok
+ * returns false: if fail
+ */
+bool house_security_set_on(void);
+
+/*
+ * Security module OFF
+ *
+ * returns true: if ok
+ * returns false: if fail
+ */
+bool house_security_set_off(void);
+
+/**
+ * Getting status of security
+ * @status: status out pointer
+ *
+ * returns true: if ok
+ * returns false: if fail
+ */
+bool house_security_get_status(uint8_t *status);
+
 
 #ifdef __cplusplus
 }

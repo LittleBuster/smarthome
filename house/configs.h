@@ -63,6 +63,9 @@ struct security_cfg {
 
 	char sms_id[50];
 	char sms_phone[50];
+
+	unsigned alarm_room;
+	unsigned alarm_street;
 };
 
 /*

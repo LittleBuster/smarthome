@@ -16,15 +16,6 @@
 #include <pthread.h>
 
 
-/**
- * Getting photo from WEB camera
- * @s_client: tcp client
- * @cam: number of WEB camera
- * @mutex: thread lock mutex
- *
- * returns true: if getting photo ok
- * returns false: if getting fail
- */
 bool cam_get_photo(struct tcp_client *s_client, uint8_t cam, pthread_mutex_t *mutex);
 
 

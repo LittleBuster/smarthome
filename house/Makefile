@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -I. -std=gnu99 -pedantic -march=native -O2 -Wno-pointer-arith
-LDFLAGS=-lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lftp -lwiringPi
+LDFLAGS=-lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lftp -lwiringPi -lcurl
 OUTLIST=main.o tcpclient.o configs.o utils.o log.o tcpserver.o house.o meteo.o dht22.o gpio.o cam.o security.o termo.o
 
 
@@ -59,4 +59,3 @@ remove:
 clean:
 	-rm house
 	-rm *.o
-	-rm *.jpg
