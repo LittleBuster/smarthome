@@ -1,10 +1,10 @@
-/* SmartHome: house server library
+/* SmartHome: Home Light application
  *
  * Copyright (C) 2016 Sergey Denisov.
  * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public Licence
+ * modify it under the terms of the GNU General Public Licence
  * as published by the Free Software Foundation; either version 3
  * of the Licence, or (at your option) any later version.
  */
@@ -18,18 +18,18 @@
 
 static struct {
 	char path[PATH_SZIE];
-} house_log;
+} log;
 
 
-bool house_log_set_path(const char *path)
+bool log_set_path(const char *path)
 {
 	if (strlen(path) >= PATH_SZIE)
 		return false;
-	strncpy(house_log.path, path, PATH_SZIE);
+	strncpy(log.path, path, PATH_SZIE);
 	return true;
 }
 
-bool house_log_local(const char *message, unsigned log_type)
+bool log_local(const char *message, unsigned log_type)
 {
 	FILE *file;
 	char out_msg[255];
@@ -46,15 +46,15 @@ bool house_log_local(const char *message, unsigned log_type)
 	strcat(out_msg, "][");
 
 	switch(log_type) {
-		case HOUSE_LOG_ERROR: {
+		case LOG_ERROR: {
 			strcat(out_msg, "ERROR] ");
 			break;
 		}
-		case HOUSE_LOG_WARNING: {
+		case LOG_WARNING: {
 			strcat(out_msg, "WARNING] ");
 			break;
 		}
-		case HOUSE_LOG_INFO: {
+		case LOG_INFO: {
 			strcat(out_msg, "INFO] ");
 			break;
 		}
@@ -63,7 +63,7 @@ bool house_log_local(const char *message, unsigned log_type)
 	strcat(out_msg, "\n");
 	printf("%s", out_msg);
 
-	file = fopen(house_log.path, "a");
+	file = fopen(log.path, "a");
 	if (file == NULL)
 		return false;
 	if (!fputs(out_msg, file)) {

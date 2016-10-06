@@ -1,4 +1,4 @@
-/* SmartHome: Street Light application
+/* SmartHome: Home Light application
  *
  * Copyright (C) 2016 Sergey Denisov.
  * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define LAMPS 2
 
 enum error_codes {
 	CFG_FILE_NOT_FOUND,
@@ -40,30 +41,17 @@ struct server_cfg {
 /*
  * Get server configs
  */
-struct server_cfg *configs_get_server(void);
+const struct server_cfg *configs_get_server(void);
 
 
 struct lamp_cfg {
-	unsigned lamps[8];
+	unsigned lamps[2];
 };
 
 /*
  * Get server configs
  */
-struct lamp_cfg *configs_get_lamps(void);
-
-
-struct move_detect {
-	unsigned lamp1;
-	unsigned lamp2;
-	unsigned mov1;
-	unsigned mov2;
-	
-};
-/*
- * Move detect configs
- */
-struct move_detect *configs_get_md(void);
+const struct lamp_cfg *configs_get_lamps(void);
 
 
 #endif

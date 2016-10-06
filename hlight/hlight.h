@@ -1,4 +1,4 @@
-/* SmartHome: Street Light application
+/* SmartHome: Home Light application
  *
  * Copyright (C) 2016 Sergey Denisov.
  * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
@@ -9,28 +9,13 @@
  * of the Licence, or (at your option) any later version.
  */
 
-#ifndef __UTILS_H__
-#define __UTILS_H__
+#ifndef __HLIGHT_H__
+#define __HLIGHT_H__
 
-#define TIME_SIZE 15
-#define DATE_SIZE 20
-#define DATETIME_SIZE 30
+#include <stdbool.h>
 
 
-/*
- * Getting now time string
- */
-void time_now(char *time);
-
-/*
- * Getting now date string
- */
-void date_now(char *date);
-
-/*
- * Getting now date and time string
- */
-void date_time_now(char *date_time);
+bool hlight_start(void);
 
 
 #endif

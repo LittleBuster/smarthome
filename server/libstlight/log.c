@@ -60,7 +60,8 @@ bool st_log_local(const char *message, unsigned log_type)
 		}
 	}
 	strcat(out_msg, message);
-	puts(out_msg);
+	strcat(out_msg, "\n");
+	printf("%s", out_msg);
 
 	file = fopen(st_log.path, "a");
 	if (file == NULL)

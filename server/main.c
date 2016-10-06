@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <smarthome/stlight.h>
+#include <smarthome/hlight.h>
 #include <smarthome/house.h>
 
 
@@ -31,6 +32,10 @@ int main(void)
 	}
 	if (!stlight_set_log("/var/log/smarthome/stlight.log")) {
 		puts("Fail setting STREET LIGHT log path. Path is to long.");
+		return -1;
+	}
+	if (!hlight_set_log("/var/log/smarthome/hlight.log")) {
+		puts("Fail setting HOME LIGHT log path. Path is to long.");
 		return -1;
 	}
 	if (!house_set_log("/var/log/smarthome/house.log")) {
@@ -69,6 +74,24 @@ int main(void)
 				break;
 			}
 			case ST_CFG_PARSE_ERR: {
+				strcat(msg, "parsing error.");
+				break;
+			}
+		}
+		log_local(msg, LOG_ERROR);
+		return -1;
+	}
+	ret_val = hlight_load_configs("/etc/smarthome/hlight.conf");
+	if (ret_val != HL_CFG_OK) {
+		char msg[255];
+
+		strcpy(msg, "Fail reading HOME LIGHT configs: ");
+		switch (ret_val) {			
+			case HL_CFG_FILE_NOT_FOUND: {
+				strcat(msg, "File not found.");
+				break;
+			}
+			case HL_CFG_PARSE_ERR: {
 				strcat(msg, "parsing error.");
 				break;
 			}

@@ -15,6 +15,7 @@
 #include "configs.h"
 #include "pthread.h"
 #include <smarthome/stlight.h>
+#include <smarthome/hlight.h>
 #include <smarthome/house.h>
 #include <stdio.h>
 #include <string.h>
@@ -26,7 +27,7 @@ static struct {
 } web;
 
 
-static bool get_parse(const char *page, char *out)
+static bool get_parse(const char *restrict page, char *out)
 {
 	char req[255];
 
@@ -54,7 +55,7 @@ static bool get_parse(const char *page, char *out)
 	return true;
 }
 
-static void call_stlight_module(const char *command, struct tcp_client *restrict client)
+static void call_stlight_module(const char *command, struct tcp_client *client)
 {
 	char func[50];
 	char answ[255];
@@ -76,7 +77,7 @@ static void call_stlight_module(const char *command, struct tcp_client *restrict
 			strcpy(answ, "HTTP/1.1 200 OK\r\n"
 					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 					"{\"result\": \"fail\"}\r\n");
-			if (!tcp_client_send(client, answ, strlen(answ)))
+			if (!tcp_client_send(client, (const void *)answ, strlen(answ)))
 				log_local("Stlight: Fail sending answ to server", LOG_ERROR);
 		}
 		/*
@@ -85,17 +86,17 @@ static void call_stlight_module(const char *command, struct tcp_client *restrict
 		strcpy(answ, "HTTP/1.1 200 OK\r\n"
 				"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 				"{\"result\": \"ok\", \"lamps\":[");
-		for (size_t i = 0; i < 8; i++) {
+		for (size_t i = 0; i < ST_LAMPS; i++) {
 			char num[2];
 			
 			sprintf(num, "%u", stat.lamps[i]);
 			strcat(answ, num);
-			if (i != 7)
+			if (i != ST_LAMPS-1)
 				strcat(answ, ",");
 		}
 		strcat(answ, "]}\r\n");
 		
-		if (!tcp_client_send(client, answ, strlen(answ)))
+		if (!tcp_client_send(client, (const void *)answ, strlen(answ)))
 			log_local("Stlight: Fail sending get_status answ to server", LOG_ERROR);
 		return;
 	}
@@ -119,7 +120,7 @@ static void call_stlight_module(const char *command, struct tcp_client *restrict
 			strcpy(answ, "HTTP/1.1 200 OK\r\n"
 					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 					"{\"result\": \"fail\"}\r\n");
-			if (!tcp_client_send(client, answ, strlen(answ)))
+			if (!tcp_client_send(client, (const void *)answ, strlen(answ)))
 				log_local("Stlight: Fail sending answ to server", LOG_ERROR);
 		}
 		printf("Switch ON #%u sended.\n", lamp);
@@ -134,7 +135,7 @@ static void call_stlight_module(const char *command, struct tcp_client *restrict
 			strcpy(answ, "HTTP/1.1 200 OK\r\n"
 					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 					"{\"result\": \"fail\"}\r\n");
-			if (!tcp_client_send(client, answ, strlen(answ)))
+			if (!tcp_client_send(client, (const void *)answ, strlen(answ)))
 				log_local("Stlight: Fail sending answ to server", LOG_ERROR);
 		}
 		printf("Switch OFF #%u sended.\n", lamp);
@@ -146,8 +147,104 @@ static void call_stlight_module(const char *command, struct tcp_client *restrict
 	strcpy(answ, "HTTP/1.1 200 OK\r\n"
 			"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 			"{\"result\": \"ok\"}\r\n");
-	if (!tcp_client_send(client, answ, strlen(answ)))
+	if (!tcp_client_send(client, (const void *)answ, strlen(answ)))
 		log_local("Stlight: Fail sending answ to server", LOG_ERROR);
+}
+
+static void call_hlight_module(const char *command, struct tcp_client *client)
+{
+	char func[50];
+	char answ[255];
+	unsigned lamp;
+	
+	char *params = strtok((const char *)command, "=");
+	if (params == NULL) {
+		log_local("Hlight: Fail parsing request params.", LOG_ERROR);
+		return;
+	}
+	/*
+	 * Calling get status command
+	 */
+	if (!strcmp(params, "get_status")) {
+		struct hl_status_data stat;
+
+		if (!hlight_get_status(&stat)) {
+			log_local("Hlight: Fail sending GET_STATUS command", LOG_ERROR);
+			strcpy(answ, "HTTP/1.1 200 OK\r\n"
+					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+					"{\"result\": \"fail\"}\r\n");
+			if (!tcp_client_send(client, (const void *)answ, strlen(answ)))
+				log_local("Hlight: Fail sending answ to server", LOG_ERROR);
+		}
+		/*
+		 * Sending json answ with array
+		 */
+		strcpy(answ, "HTTP/1.1 200 OK\r\n"
+				"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+				"{\"result\": \"ok\", \"lamps\":[");
+		for (size_t i = 0; i < HL_LAMPS; i++) {
+			char num[2];
+			
+			sprintf(num, "%u", stat.lamps[i]);
+			strcat(answ, num);
+			if (i != HL_LAMPS-1)
+				strcat(answ, ",");
+		}
+		strcat(answ, "]}\r\n");
+		
+		if (!tcp_client_send(client, (const void *)answ, strlen(answ)))
+			log_local("Hlight: Fail sending get_status answ to server", LOG_ERROR);
+		return;
+	}
+	/*
+	 * If not get status
+	 */	
+	strcpy(func, params);
+	params = strtok(NULL, "=");
+	if (params == NULL) {
+		log_local("Hlight: Fail parsing request params.", LOG_ERROR);
+		return;
+	}
+	sscanf(params, "%u", &lamp);
+
+	/*
+	 * Switching on lamp
+	 */
+	if (!strcmp(func, "switch_on")) {
+		if (!hlight_switch_on(lamp)) {
+			log_local("Hlight: Fail sending SWITCH_ON command", LOG_ERROR);
+			strcpy(answ, "HTTP/1.1 200 OK\r\n"
+					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+					"{\"result\": \"fail\"}\r\n");
+			if (!tcp_client_send(client, (const void *)answ, strlen(answ)))
+				log_local("Hlight: Fail sending answ to server", LOG_ERROR);
+		}
+		printf("Hlight: Switch ON #%u sended.\n", lamp);
+	}
+
+	/*
+	 * Switching off lamp
+	 */
+	if (!strcmp(func, "switch_off")) {
+		if (!hlight_switch_off(lamp)) {
+			log_local("Hlight: Fail sending SWITCH_OFF command", LOG_ERROR);
+			strcpy(answ, "HTTP/1.1 200 OK\r\n"
+					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+					"{\"result\": \"fail\"}\r\n");
+			if (!tcp_client_send(client, (const void *)answ, strlen(answ)))
+				log_local("Hlight: Fail sending answ to server", LOG_ERROR);
+		}
+		printf("Hlight: Switch OFF #%u sended.\n", lamp);
+	}
+
+	/*
+	 * Sending OK result
+	 */
+	strcpy(answ, "HTTP/1.1 200 OK\r\n"
+			"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+			"{\"result\": \"ok\"}\r\n");
+	if (!tcp_client_send(client, (const void *)answ, strlen(answ)))
+		log_local("Hlight: Fail sending answ to server", LOG_ERROR);
 }
 
 static void call_cam_module(const char *command, struct tcp_client *restrict client)
@@ -176,7 +273,7 @@ static void call_cam_module(const char *command, struct tcp_client *restrict cli
 			strcpy(answ, "HTTP/1.1 200 OK\r\n"
 						"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 						"{\"result\": \"fail\"}\r\n");
-			if (!tcp_client_send(client, answ, strlen(answ))) {
+			if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 				log_local("CAM: Fail sending answ to server", LOG_ERROR);
 				return;
 			}
@@ -185,7 +282,7 @@ static void call_cam_module(const char *command, struct tcp_client *restrict cli
 		strcpy(answ, "HTTP/1.1 200 OK\r\n"
 					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 					"{\"result\": \"ok\"}\r\n");
-		if (!tcp_client_send(client, answ, strlen(answ))) {
+		if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 			log_local("CAM: Fail sending answ to server", LOG_ERROR);
 			return;
 		}
@@ -210,7 +307,7 @@ static void call_security_module(const char *command, struct tcp_client *client)
 					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 					"{\"result\": \"fail\"}\r\n");
 
-			if (!tcp_client_send(client, answ, strlen(answ))) {
+			if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 				log_local("Security: Fail sending on answ to server", LOG_ERROR);
 				return;
 			}
@@ -226,7 +323,7 @@ static void call_security_module(const char *command, struct tcp_client *client)
 						"{\"result\": \"ok\", \"status\": 0}\r\n");
 		}
 
-		if (!tcp_client_send(client, answ, strlen(answ))) {
+		if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 			log_local("Security: Fail sending on answ to server", LOG_ERROR);
 			return;
 		}
@@ -252,7 +349,7 @@ static void call_security_module(const char *command, struct tcp_client *client)
 				strcpy(answ, "HTTP/1.1 200 OK\r\n"
 						"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 						"{\"result\": \"fail\"}\r\n");
-				if (!tcp_client_send(client, answ, strlen(answ))) {
+				if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 					log_local("Security: Fail sending on answ to server", LOG_ERROR);
 					return;
 				}
@@ -266,7 +363,7 @@ static void call_security_module(const char *command, struct tcp_client *client)
 				strcpy(answ, "HTTP/1.1 200 OK\r\n"
 						"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 						"{\"result\": \"fail\"}\r\n");
-				if (!tcp_client_send(client, answ, strlen(answ))) {
+				if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 					log_local("Security: Fail sending off answ to server", LOG_ERROR);
 					return;
 				}
@@ -276,7 +373,7 @@ static void call_security_module(const char *command, struct tcp_client *client)
 		strcpy(answ, "HTTP/1.1 200 OK\r\n"
 					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 					"{\"result\": \"ok\"}\r\n");
-		if (!tcp_client_send(client, answ, strlen(answ))) {
+		if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 			log_local("Security: Fail sending answ to server", LOG_ERROR);
 			return;
 		}
@@ -300,7 +397,7 @@ static void call_termo_module(const char *command, struct tcp_client *restrict c
 			strcpy(answ, "HTTP/1.1 200 OK\r\n"
 					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 					"{\"result\": \"fail\"}\r\n");
-			if (!tcp_client_send(client, answ, strlen(answ))) {
+			if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 				log_local("TERMO: Fail sending answ to server", LOG_ERROR);
 				return;
 			}
@@ -314,7 +411,7 @@ static void call_termo_module(const char *command, struct tcp_client *restrict c
 		else
 			strcat(answ, "0");
 		strcat(answ, "}\r\n");
-		if (!tcp_client_send(client, answ, strlen(answ))) {
+		if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 			log_local("TERMO: Fail sending answ to server", LOG_ERROR);
 			return;
 		}
@@ -330,7 +427,7 @@ static void call_termo_module(const char *command, struct tcp_client *restrict c
 			strcpy(answ, "HTTP/1.1 200 OK\r\n"
 					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 					"{\"result\": \"fail\"}\r\n");
-			if (!tcp_client_send(client, answ, strlen(answ))) {
+			if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 				log_local("TERMO: Fail sending answ to server", LOG_ERROR);
 				return;
 			}
@@ -344,7 +441,7 @@ static void call_termo_module(const char *command, struct tcp_client *restrict c
 		strcat(answ, ntemp);
 
 		strcat(answ, "}\r\n");
-		if (!tcp_client_send(client, answ, strlen(answ))) {
+		if (!tcp_client_send(client, answ, (const void *)strlen(answ))) {
 			log_local("TERMO: Fail sending answ to server", LOG_ERROR);
 			return;
 		}
@@ -371,7 +468,7 @@ static void call_termo_module(const char *command, struct tcp_client *restrict c
 				strcpy(answ, "HTTP/1.1 200 OK\r\n"
 						"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 						"{\"result\": \"fail\"}\r\n");
-				if (!tcp_client_send(client, answ, strlen(answ))) {
+				if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 					log_local("TERMO: Fail sending answ to server", LOG_ERROR);
 					return;
 				}
@@ -384,7 +481,7 @@ static void call_termo_module(const char *command, struct tcp_client *restrict c
 				strcpy(answ, "HTTP/1.1 200 OK\r\n"
 						"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 						"{\"result\": \"fail\"}\r\n");
-				if (!tcp_client_send(client, answ, strlen(answ))) {
+				if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 					log_local("TERMO: Fail sending answ to server", LOG_ERROR);
 					return;
 				}
@@ -394,7 +491,7 @@ static void call_termo_module(const char *command, struct tcp_client *restrict c
 		strcpy(answ, "HTTP/1.1 200 OK\r\n"
 					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 					"{\"result\": \"ok\"}\r\n");
-		if (!tcp_client_send(client, answ, strlen(answ))) {
+		if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 			log_local("TERMO: Fail sending answ to server", LOG_ERROR);
 			return;
 		}
@@ -417,7 +514,7 @@ static void call_meteo_module(const char *command, struct tcp_client *restrict c
 			strcpy(answ, "HTTP/1.1 200 OK\r\n"
 						"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 						"{\"result\": \"fail\"}\r\n");
-			if (!tcp_client_send(client, answ, strlen(answ))) {
+			if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 				log_local("METEO: Fail sending answ to server", LOG_ERROR);
 			}
 			return;
@@ -435,7 +532,7 @@ static void call_meteo_module(const char *command, struct tcp_client *restrict c
 				strcat(answ, ",");
 		}
 		strcat(answ, "]}\r\n");
-		if (!tcp_client_send(client, answ, strlen(answ))) {
+		if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 			log_local("METEO: Fail sending answ to server", LOG_ERROR);
 		}
 	} else {
@@ -451,7 +548,7 @@ static void new_session(struct tcp_client *client, void *data)
 	char module[255];
 	char command[255];
 
-	if (!tcp_client_recv(client, page, 1024)) {
+	if (!tcp_client_recv(client, (void *)page, 1024)) {
 		log_local("Fail receiving GET request.", LOG_ERROR);
 		return;
 	}
@@ -476,6 +573,11 @@ static void new_session(struct tcp_client *client, void *data)
 	 */
 	if (!strcmp(module, "/stlight")) {
 		call_stlight_module(command, client);
+		return;
+	}
+
+	if (!strcmp(module, "/hlight")) {
+		call_hlight_module(command, client);
 		return;
 	}
 
