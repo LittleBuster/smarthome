@@ -9,35 +9,14 @@
  * of the Licence, or (at your option) any later version.
  */
 
-#ifndef __TERMO_H__
-#define __TERMO_H__
+#ifndef __PATH_H__
+#define __PATH_H__
 
-#include <pthread.h>
 
-/*
- * Starting termo control module
- */
-void termo_start(pthread_mutex_t *mutex);
-
-/*
- * Termo control on
- */
-void termo_control_on(void);
-
-/*
- * Termo control off
- */
-void termo_control_off(void);
-
-/*
- * Getting control status (on/off)
- */
-void termo_get_status(uint8_t *status);
-
-/*
- * Getting max temp
- */
-void termo_get_temp(float *temp);
+#define PATH_LOG "/var/log/house.log"
+#define PATH_CONF "/etc/house.conf"
+#define PATH_METEO "/etc/meteo.db"
+#define PATH_HOUSE "/etc/house.db"
 
 
 #endif

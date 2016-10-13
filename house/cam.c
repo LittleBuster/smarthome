@@ -26,14 +26,14 @@ bool cam_get_photo(struct tcp_client *s_client, uint8_t cam, pthread_mutex_t *mu
 	netbuf *nb;
 	char filename[255];
 	struct command answ;
-	struct ftp_cfg *fc = configs_get_ftp();
+	const struct ftp_cfg *fc = configs_get_ftp();
 
 	CvCapture* capture = cvCreateCameraCapture(cam);
 	if (capture == NULL) {
 		answ.code = PHOTO_FAIL;
-		if (!tcp_client_send(s_client, &answ, sizeof(struct command))) {
+		if (!tcp_client_send(s_client, (const void *)&answ, sizeof(struct command))) {
 			pthread_mutex_lock(mutex);
-			log_local("Fail sending answ.", LOG_ERROR);
+			log_local("CreateCAMCapture: Fail sending answ.", LOG_ERROR);
 			pthread_mutex_unlock(mutex);
 			return false;
 		}
@@ -43,9 +43,9 @@ bool cam_get_photo(struct tcp_client *s_client, uint8_t cam, pthread_mutex_t *mu
 	IplImage* frame = cvQueryFrame(capture);
 	if (frame == NULL) {
 		answ.code = PHOTO_FAIL;
-		if (!tcp_client_send(s_client, &answ, sizeof(struct command))) {
+		if (!tcp_client_send(s_client, (const void *)&answ, sizeof(struct command))) {
 			pthread_mutex_lock(mutex);
-			log_local("Fail sending answ.", LOG_ERROR);
+			log_local("QueryCAMFrame: Fail sending answ.", LOG_ERROR);
 			pthread_mutex_unlock(mutex);
 			return false;
 		}
@@ -64,9 +64,9 @@ bool cam_get_photo(struct tcp_client *s_client, uint8_t cam, pthread_mutex_t *mu
 		FtpQuit(nb);
 		answ.code = PHOTO_FAIL;
 	
-		if (!tcp_client_send(s_client, &answ, sizeof(struct command))) {
+		if (!tcp_client_send(s_client, (const void *)&answ, sizeof(struct command))) {
 			pthread_mutex_lock(mutex);
-			log_local("Fail sending answ.", LOG_ERROR);
+			log_local("FtpConnect: Fail sending answ.", LOG_ERROR);
 			pthread_mutex_unlock(mutex);
 			return false;
 		}
@@ -76,9 +76,9 @@ bool cam_get_photo(struct tcp_client *s_client, uint8_t cam, pthread_mutex_t *mu
 		log_local("Fail ftp login data", LOG_ERROR);
 		FtpQuit(nb);
 		answ.code = PHOTO_FAIL;
-		if (!tcp_client_send(s_client, &answ, sizeof(struct command))) {
+		if (!tcp_client_send(s_client, (const void *)&answ, sizeof(struct command))) {
 			pthread_mutex_lock(mutex);
-			log_local("Fail sending answ.", LOG_ERROR);
+			log_local("FtpLogin: Fail sending answ.", LOG_ERROR);
 			pthread_mutex_unlock(mutex);
 			return false;
 		}
@@ -94,9 +94,9 @@ bool cam_get_photo(struct tcp_client *s_client, uint8_t cam, pthread_mutex_t *mu
 		log_local("Fail uploading photo on ftp", LOG_ERROR);
 		FtpQuit(nb);
 		answ.code = PHOTO_FAIL;
-		if (!tcp_client_send(s_client, &answ, sizeof(struct command))) {
+		if (!tcp_client_send(s_client, (const void *)&answ, sizeof(struct command))) {
 			pthread_mutex_lock(mutex);
-			log_local("Fail sending answ.", LOG_ERROR);
+			log_local("FtpPut: Fail sending answ.", LOG_ERROR);
 			pthread_mutex_unlock(mutex);
 			return false;
 		}

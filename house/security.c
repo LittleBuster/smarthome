@@ -22,6 +22,8 @@
  
 
 static struct {
+	pthread_mutex_t *mutex;
+
 	pthread_t sec_th;
 	pthread_t alarm_th;
 
@@ -39,11 +41,11 @@ static struct {
 };
 
 
-static bool send_sms(const char *message)
+static bool send_sms(const char *restrict message)
 {
 	char data[1024];
 	CURL *curl_handle;
-	struct security_cfg *sec = configs_get_security();
+	const struct security_cfg *sec = configs_get_security();
 	
 	strcpy(data, "http://sms.ru/sms/send?api_id=");
 	strcat(data, sec->sms_id);
@@ -52,25 +54,28 @@ static bool send_sms(const char *message)
 	strcat(data, "&text=");
 	strcat(data, message);
 
-    curl_handle = curl_easy_init();
-    if (curl_handle) {
-        curl_easy_setopt(curl_handle, CURLOPT_URL, data);
-        curl_easy_perform(curl_handle);
-        curl_easy_cleanup(curl_handle);
-        return true;
+ 	curl_handle = curl_easy_init();
+    	if (curl_handle) {
+        	curl_easy_setopt(curl_handle, CURLOPT_URL, data);
+	        curl_easy_perform(curl_handle);
+        	curl_easy_cleanup(curl_handle);
+	        return true;
 	}
 	return false;
 }
 
 static void *alarm_thread(void *data)
 {
-	struct security_cfg *sec = (struct security_cfg *)data;
+	const struct security_cfg *sec = (const struct security_cfg *)data;
 
 	for (uint8_t i = 0; i < 20; i++) {
 		if (send_sms(security.msg))
 			break;
-		else
+		else {
+			pthread_mutex_lock(security.mutex);
 			log_local("Fail sending security SMS.", LOG_ERROR);
+			pthread_mutex_unlock(security.mutex);
+		}
 	}
 
 	for (;;) {
@@ -86,7 +91,7 @@ static void *alarm_thread(void *data)
 
 static void *security_thread(void *data)
 {
-	struct security_cfg *sec = (struct security_cfg *)data;
+	const struct security_cfg *sec = (const struct security_cfg *)data;
 
 	for (;;) {
 		if (security.status) {
@@ -96,7 +101,10 @@ static void *security_thread(void *data)
 			if (mv == 1) {
 				security.move_cnt++;
 				if (security.move_cnt == 3) {
+					pthread_mutex_lock(security.mutex);
 					puts("Security: Moving detected!");
+					pthread_mutex_unlock(security.mutex);
+
 					strcpy(security.msg, "DACHA:+WARNING!!!+Motion+detected!");
 					pthread_create(&security.alarm_th, NULL, &alarm_thread, (void *)sec);
 					pthread_detach(security.alarm_th);
@@ -106,7 +114,10 @@ static void *security_thread(void *data)
 			}
 
 			if (dr == 0) {
+				pthread_mutex_lock(security.mutex);
 				puts("Security: Door detected!");
+				pthread_mutex_unlock(security.mutex);
+
 				strcpy(security.msg, "DACHA:+WARNING!!!+Door+is+opened!");
 				pthread_create(&security.alarm_th, NULL, &alarm_thread, (void *)sec);
 				pthread_detach(security.alarm_th);
@@ -124,9 +135,9 @@ static void *security_thread(void *data)
 }
 
 
-void security_start(void)
+void security_start(pthread_mutex_t *mutex)
 {
-	struct security_cfg *sec = configs_get_security();
+	const struct security_cfg *sec = configs_get_security();
 
 	pinMode(sec->move, INPUT);
 	pinMode(sec->door, INPUT);
@@ -136,6 +147,8 @@ void security_start(void)
 	digitalWrite(sec->alarm_room, LOW);
 	digitalWrite(sec->alarm_street, LOW);
 
+	security.mutex = mutex;
+
 	pthread_create(&security.sec_th, NULL, &security_thread, (void *)sec);
 	pthread_detach(security.sec_th);
 	puts("Starting security module...");
@@ -143,14 +156,18 @@ void security_start(void)
 
 void security_set_on(void)
 {
+	pthread_mutex_lock(security.mutex);
 	security.status = true;
 	puts("Security is on.");
+	pthread_mutex_unlock(security.mutex);
 }
 
 void security_set_off(void)
 {
+	pthread_mutex_lock(security.mutex);
 	security.status = false;
 	puts("Security is off.");
+	pthread_mutex_unlock(security.mutex);
 }
 
 void security_get_status(uint8_t *status)

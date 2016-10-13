@@ -45,6 +45,19 @@ struct server_cfg {
 struct server_cfg *configs_get_server(void);
 
 
+struct meteo_cfg {
+	unsigned street;
+	unsigned room;
+	unsigned second;
+	unsigned veranda;
+};
+
+/*
+ * Reading meteo sensors
+ */
+struct meteo_cfg *configs_get_meteo(void);
+
+
 struct ftp_cfg {
 	char ip[16];
 	char user[50];

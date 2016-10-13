@@ -1,14 +1,3 @@
-/* SmartHome: Street Light application
- *
- * Copyright (C) 2016 Sergey Denisov.
- * Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public Licence
- * as published by the Free Software Foundation; either version 3
- * of the Licence, or (at your option) any later version.
- */
-
 #ifndef __CONFIGS_H__
 #define __CONFIGS_H__
 
@@ -60,10 +49,21 @@ struct move_detect {
 	unsigned mov2;
 	
 };
+
 /*
  * Move detect configs
  */
 struct move_detect *configs_get_md(void);
+
+
+struct toilet {
+	unsigned btn;
+};
+
+/*
+ * Getting toilet button
+ */
+struct toilet *configs_get_toilet(void);
 
 
 #endif

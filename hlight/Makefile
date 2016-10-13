@@ -35,10 +35,12 @@ install:
 	-cp hlight /usr/share/homelight/
 	-cp hlight.conf /etc/
 	-chmod +x /usr/share/homelight/hlight
+	-cp hlight.service /etc/systemd/system/
 
 remove:
 	-rm -rf /usr/share/homelight
 	-rm /etc/hlight.conf
+	-rm /etc/systemd/system/hlight.service
 
 clean:
 	-rm hlight

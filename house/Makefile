@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -I. -std=gnu99 -pedantic -march=native -O2 -Wno-pointer-arith
-LDFLAGS=-lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lftp -lwiringPi -lcurl
-OUTLIST=main.o tcpclient.o configs.o utils.o log.o tcpserver.o house.o meteo.o dht22.o gpio.o cam.o security.o termo.o
+LDFLAGS=-lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lftp -lwiringPi -lcurl -lsqlite3
+OUTLIST=main.o tcpclient.o configs.o utils.o log.o tcpserver.o house.o meteo.o dht22.o gpio.o cam.o security.o termo.o database.o mlist.o
 
 
 all: house
@@ -48,14 +48,21 @@ security.o: security.c
 termo.o: termo.c
 	$(CC) -c termo.c $(CFLAGS)
 
+database.o: database.c
+	$(CC) -c database.c $(CFLAGS)
+
+mlist.o: mlist.c
+	$(CC) -c mlist.c $(CFLAGS)
+
 install:
 	cp house.conf /etc/
-	cp termo.conf /etc/
+	cp house.service /etc/systemd/system/
 
 remove:
-	/etc/house.conf
-	/etc/termo.conf
+	rm /etc/house.conf
+	rm /etc/systemd/system/house.service
 
 clean:
 	-rm house
 	-rm *.o
+	-rm *.jpg

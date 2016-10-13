@@ -149,7 +149,7 @@ static void new_session(struct tcp_client *s_client, void *data)
 
 bool house_server_start(void)
 {
-	struct server_cfg *sc = configs_get_server();
+	const struct server_cfg *sc = configs_get_server();
 
 	puts("Starting House server...");
 	pthread_mutex_init(&house.mutex, NULL);
@@ -161,7 +161,9 @@ bool house_server_start(void)
 		log_local("Fail initialization GPIO ports.", LOG_ERROR);
 		return false;
 	}
-	meteo_sensors_start_timer();
+	meteo_sensors_start_timer(&house.mutex);
+	security_start(&house.mutex);
+	termo_start(&house.mutex);
 
 	/*
 	 * TCP server init

@@ -14,10 +14,11 @@
 #include <wiringPi.h>
 #include "house.h"
 #include "tcpserver.h"
+#include "database.h"
 #include "log.h"
 #include "configs.h"
-#include "security.h"
 #include "termo.h"
+#include "path.h"
 
 
 int main(void)
@@ -26,14 +27,12 @@ int main(void)
 
 	wiringPiSetup();
 
-	if (!log_set_path("/var/log/house.log")) {
+	if (!log_set_path(PATH_LOG)) {
 		puts("Fail setting log path. Path is to long.");
 		return -1;
 	}
-	if (configs_termo_load("/etc/termo.conf") != CFG_OK)
-		log_local("Fail loading termo configs.", LOG_WARNING);
 
-	ret_val = configs_load("/etc/house.conf");
+	ret_val = configs_load(PATH_CONF);
 	if (ret_val != CFG_OK) {
 		char msg[255];
 
@@ -51,7 +50,5 @@ int main(void)
 		log_local(msg, LOG_ERROR);
 		return -1;
 	}
-	security_start();
-	termo_start();
 	return house_server_start();
 }

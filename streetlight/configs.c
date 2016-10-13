@@ -25,6 +25,7 @@ static struct {
     struct server_cfg sc;
     struct lamp_cfg lc;
     struct move_detect md;
+    struct toilet tlt;
 } cfg;
 
 
@@ -155,6 +156,10 @@ uint8_t configs_load(const char *filename)
         fclose(file);
         return CFG_PARSE_ERR;
     }
+    if (!configs_read_unsigned(file, &cfg.tlt.btn)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
     fclose(file);
     return CFG_OK;
 }
@@ -172,4 +177,9 @@ struct lamp_cfg *configs_get_lamps(void)
 struct move_detect *configs_get_md(void)
 {
 	return &cfg.md;
+}
+
+struct toilet *configs_get_toilet(void)
+{
+	return &cfg.tlt;
 }

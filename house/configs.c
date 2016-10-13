@@ -25,6 +25,7 @@ static struct {
     char filename[255];
 
     struct server_cfg sc;
+    struct meteo_cfg meteo;
     struct ftp_cfg fc;
     struct security_cfg sec;
     struct termo_cfg tc;
@@ -175,6 +176,22 @@ uint8_t configs_load(const char *filename)
         fclose(file);
         return CFG_PARSE_ERR;
     }
+    if (!configs_read_unsigned(file, &cfg.meteo.street)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_unsigned(file, &cfg.meteo.room)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_unsigned(file, &cfg.meteo.second)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_unsigned(file, &cfg.meteo.veranda)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
     if (!configs_read_string(file, cfg.fc.ip, 15)) {
         fclose(file);
         return CFG_PARSE_ERR;
@@ -237,6 +254,11 @@ struct security_cfg *configs_get_security(void)
 struct termo_cfg *configs_get_termo(void)
 {
     return &cfg.tc;
+}
+
+struct meteo_cfg *configs_get_meteo(void)
+{
+	return &cfg.meteo;
 }
 
 /*

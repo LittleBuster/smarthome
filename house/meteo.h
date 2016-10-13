@@ -13,6 +13,7 @@
 #define __METEO_H__
 
 #include <stdbool.h>
+#include <pthread.h>
 
 
 /*
@@ -23,7 +24,7 @@ bool meteo_sensors_init(void);
 /*
  * Start meteo timer
  */
-void meteo_sensors_start_timer(void);
+void meteo_sensors_start_timer(pthread_mutex_t *mutex);
 
 /**
  * Get street meteo data

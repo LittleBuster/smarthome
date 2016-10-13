@@ -63,11 +63,13 @@ static struct {
 	pthread_mutex_t mutex;
 
 	struct tcp_server server;
+	uint8_t tb_on;
 } stlight = {
 	.time_mov1 = 0,
 	.time_mov2 = 0,
 	.hand_lamp1 = false,
-	.hand_lamp2 = false
+	.hand_lamp2 = false,
+	.tb_on = false
 };
 
 
@@ -287,7 +289,7 @@ static void* timer_thread(void *data)
 				pthread_mutex_unlock(&stlight.mutex);
 			}
 		}		
-        delay(500);
+        	delay(500);
 	}
 	return NULL;
 }
@@ -295,18 +297,44 @@ static void* timer_thread(void *data)
 static void* move_detect_thread(void *data)
 {
 	struct move_detect *md = (struct move_detect *)data;
+	struct toilet *tlt = configs_get_toilet();
+	struct lamp_cfg *lc = configs_get_lamps();
 
 	puts("Starting move detect server...");	
-	pthread_mutex_lock(&stlight.mutex);
 	pinMode(md->mov1, INPUT);
 	pinMode(md->mov2, INPUT);
-	pthread_mutex_unlock(&stlight.mutex);
+	pinMode(tlt->btn, INPUT);
 	for (;;) {
-		pthread_mutex_lock(&stlight.mutex);
 		int mov1 = digitalRead(md->mov1);
 		int mov2 = digitalRead(md->mov2);
-		pthread_mutex_unlock(&stlight.mutex);
+		int tb = digitalRead(tlt->btn);
 
+		if (tb == 1) {
+			pthread_mutex_lock(&stlight.mutex);
+			if (!stlight.tb_on) {
+				stlight.lamps[2] = 1;
+				digitalWrite(lc->lamps[2], LOW);
+				stlight.lamps[3] = 1;
+				digitalWrite(lc->lamps[3], LOW);
+				stlight.lamps[7] = 1;
+				digitalWrite(lc->lamps[7], LOW);
+				stlight.tb_on = true;
+				stlight.hand_lamp1 = true;
+				puts("Turn ON toilet projectors");
+			} else {
+				stlight.lamps[2] = 0;
+				digitalWrite(lc->lamps[2], HIGH);
+				stlight.lamps[3] = 0;
+				digitalWrite(lc->lamps[3], HIGH);
+				stlight.lamps[7] = 0;
+				digitalWrite(lc->lamps[7], HIGH);
+				stlight.tb_on = false;
+				stlight.hand_lamp1 = false;
+				puts("Turn OFF toilet projectors");
+			}
+			pthread_mutex_unlock(&stlight.mutex);
+			delay(500);
+		}
 		if (mov1 == 1) {
 			pthread_mutex_lock(&stlight.mutex);
 			stlight.time_mov1 = MOVE_TIMEOUT;
@@ -317,7 +345,7 @@ static void* move_detect_thread(void *data)
 			stlight.time_mov2 = MOVE_TIMEOUT;
 			pthread_mutex_unlock(&stlight.mutex);
 		}
-		delay(500);
+		delay(100);
 	}
 	return NULL;
 }

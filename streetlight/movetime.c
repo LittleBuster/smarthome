@@ -21,8 +21,8 @@ static struct {
 	struct time_off toff;
 
 } mtime = {
-	.ton.on_lh1 = 20,
-	.ton.on_lh2 = 20,
+	.ton.on_lh1 = 19,
+	.ton.on_lh2 = 19,
 	.toff.off_lh1 = 7,
 	.toff.off_lh2 = 7
 };
