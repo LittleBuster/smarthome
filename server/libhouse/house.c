@@ -51,6 +51,7 @@ struct sec_stat_answ {
 
 struct termo_stat_answ {
 	uint8_t status;
+	uint8_t heater_status;
 };
 
 struct termo_temp_answ {
@@ -179,7 +180,34 @@ bool house_termo_control_off(void)
 	return true;
 }
 
-bool house_termo_get_status(uint8_t *status)
+bool house_termo_set_temp(float temp)
+{
+	struct command cmd;
+	struct tcp_client client;
+	struct termo_temp_answ ttemp;
+	struct server_cfg *hsc = house_configs_get_server();
+
+	if (!tcp_client_connect(&client, hsc->ip, hsc->port)) {
+		house_log_local("Can not connect to house server.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	cmd.code = TERMO_SET_TEMP;
+	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
+		tcp_client_close(&client);
+		house_log_local("Fail sending termo on house command.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	ttemp.temp = temp;
+	if (!tcp_client_send(&client, (const void *)&ttemp, sizeof(struct termo_temp_answ))) {
+		tcp_client_close(&client);
+		house_log_local("Fail sending termo set new temp command.", HOUSE_LOG_ERROR);
+		return false;
+	}
+	tcp_client_close(&client);
+	return true;
+}
+
+bool house_termo_get_status(uint8_t *status, uint8_t *heater_status)
 {
 	struct command cmd;
 	struct termo_stat_answ answ;

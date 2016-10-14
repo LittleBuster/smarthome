@@ -52,6 +52,7 @@ struct sec_stat_answ {
 
 struct termo_stat_answ {
 	uint8_t status;
+	uint8_t heater_status;
 };
 
 struct termo_temp_answ {

@@ -24,15 +24,8 @@
 
 static struct {
 	pthread_t term_th;
-
-	bool status;
-	bool warm_status;
-
 	struct termo_ext_cfg tec;
-} termo = {
-	.status = false,
-	.warm_status = false
-};
+} termo;
 
 
 static void *termo_thread(void *data)
@@ -40,25 +33,24 @@ static void *termo_thread(void *data)
 	const struct termo_cfg *tc = configs_get_termo();
 
 	for (;;) {
-		if (termo.status) {
+		if (termo.tec.last_status) {
 			float cur_temp, cur_hum;			
 
 			meteo_get_room_data(&cur_temp, &cur_hum);
 
 			if (cur_temp <= (termo.tec.temp - 0.5)) {
 				digitalWrite(tc->tpin, LOW);
-				termo.warm_status = true;
+				termo.tec.heater_status = 1;
 			}
 
 			if (cur_temp >= (termo.tec.temp + 0.5)) {
 				digitalWrite(tc->tpin, HIGH);
-				termo.warm_status = false;
+				termo.tec.heater_status = 0;
 			}
 		} else {
 			digitalWrite(tc->tpin, HIGH);
-			termo.warm_status = false;
+			termo.tec.heater_status = 0;
 		}
-
 		delay(1000);
 	}
 	return NULL;
@@ -80,19 +72,34 @@ bool termo_start(void)
 	return true;
 }
 
-void termo_control_on(void)
+bool termo_control_on(void)
 {
-	termo.status = true;
+	termo.tec.last_status = 1;
+	if (configs_termo_save(&termo.tec, PATH_TERMO_EXT) != CFG_OK)
+		return false;
+	return true;
 }
 
-void termo_control_off(void)
+bool termo_control_off(void)
 {
-	termo.status = false;
+	termo.tec.last_status = 0;
+	if (configs_termo_save(&termo.tec, PATH_TERMO_EXT) != CFG_OK)
+		return false;
+	return true;
 }
 
-void termo_get_status(uint8_t *status)
+bool termo_set_temp(float temp)
 {
-	*status = termo.status;
+	termo.tec.temp = temp;
+	if (configs_termo_save(&termo.tec, PATH_TERMO_EXT) != CFG_OK)
+		return false;
+	return true;
+}
+
+void termo_get_status(uint8_t *status, uint8_t heater_status)
+{
+	*status = termo.tec.last_status;
+	*heater_status = termo.tec.heater_status;
 }
 
 void termo_get_temp(float *temp)

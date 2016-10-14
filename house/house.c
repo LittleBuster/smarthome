@@ -42,13 +42,21 @@ static void new_session(struct tcp_client *s_client, void *data)
 	}
 	switch (cmd.code) {
 		case TERMO_ON: {
-			puts("Termo control switching on");
-			termo_control_on();
+			pthread_mutex_lock(&house.mutex);
+			if (!termo_control_on())
+				log_local("Termocontrol: fail switching on", LOG_ERROR);
+			else
+				puts("Termocontrol: switching on [OK]");
+			pthread_mutex_unlock(&house.mutex);
 			break;
 		}
 		case TERMO_OFF: {
-			puts("Termo control switching off");
-			termo_control_off();
+			pthread_mutex_lock(&house.mutex);
+			if (!termo_control_off())
+				log_local("Termocontrol: fail switching off", LOG_ERROR);
+			else
+				puts("Termocontrol: switching off [OK]");
+			pthread_mutex_unlock(&house.mutex);
 			break;
 		}
 		case TERMO_GET_TEMP: {
@@ -65,12 +73,27 @@ static void new_session(struct tcp_client *s_client, void *data)
 			break;
 		}
 		case TERMO_SET_TEMP: {
+			struct termo_temp_answ ttemp;
+			/*
+			 * Receiving new temperature
+			 */
+			if (!tcp_client_recv(s_client, (void *)&ttemp, sizeof(struct termo_temp_answ))) {
+				pthread_mutex_lock(&house.mutex);
+				log_local("Fail receiving new termo temperature.", LOG_ERROR);
+				pthread_mutex_unlock(&house.mutex);
+				return;
+			}
+
+			pthread_mutex_lock(&house.mutex);
+			if (!termo_set_temp(ttemp.temp))
+				log_local("Termocontrol: fail changing temperature.", LOG_ERROR);
+			pthread_mutex_unlock(&house.mutex);
 			break;
 		}
 		case TERMO_GET_STATUS: {
 			struct termo_stat_answ answ;
 
-			termo_get_status(&answ.status);
+			termo_get_status(&answ.status, &answ.heater_status);
 			if (!tcp_client_send(s_client, (const void *)&answ, sizeof(struct termo_stat_answ))) {
 				pthread_mutex_lock(&house.mutex);
 				log_local("Fail sending termo status answ.", LOG_ERROR);

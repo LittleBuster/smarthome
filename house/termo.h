@@ -23,17 +23,24 @@ bool termo_start(void);
 /*
  * Termo control on
  */
-void termo_control_on(void);
+bool termo_control_on(void);
 
 /*
  * Termo control off
  */
-void termo_control_off(void);
+bool termo_control_off(void);
 
 /*
- * Getting control status (on/off)
+ * Setting new temperature
  */
-void termo_get_status(uint8_t *status);
+bool termo_set_temp(float temp);
+
+/**
+ * Getting control status (on/off)
+ * @status: termo control status
+ * @heater_status: on/off status of the heater
+ */
+void termo_get_status(uint8_t *status, uint8_t *heater_status);
 
 /*
  * Getting max temp

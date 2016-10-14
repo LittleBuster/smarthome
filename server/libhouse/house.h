@@ -88,13 +88,22 @@ bool house_termo_control_off(void);
  */
 bool house_termo_get_temp(float *temp);
 
+/**
+ * Seting termo max temperature
+ * @temp: max temp
+ *
+ * returns true: if ok
+ * returns false: if fail getting
+ */
+bool house_termo_set_temp(float temp);
+
 /*
  * Get termo status
  *
  * returns true: if ok
  * returns false: if fail getting
  */
-bool house_termo_get_status(uint8_t *status);
+bool house_termo_get_status(uint8_t *status, uint8_t heater_status);
 
 /*
  * Security module ON

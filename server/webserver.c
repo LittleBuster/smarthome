@@ -391,8 +391,9 @@ static void call_termo_module(const char *command, struct tcp_client *restrict c
 
 	if (!strcmp(command, "get_status")) {
 		uint8_t status = 0;
+		uint8_t heater_status = 0;
 
-		if (!house_termo_get_status(&status)) {
+		if (!house_termo_get_status(&status, &heater_status)) {
 			log_local("Fail sending TERMO_GET_STATUS command", LOG_ERROR);
 			strcpy(answ, "HTTP/1.1 200 OK\r\n"
 					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
@@ -407,10 +408,14 @@ static void call_termo_module(const char *command, struct tcp_client *restrict c
 				"Content-Type: application/json; charset=UTF-8\r\n\r\n"
 				"{\"result\": \"ok\", \"status\": ");
 		if (status == 1)
-			strcat(answ, "1");
+			strcat(answ, "1, heater_status: ");
 		else
-			strcat(answ, "0");
-		strcat(answ, "}\r\n");
+			strcat(answ, "0, heater_status: ");
+		if (heater_status == 1)
+			strcat(answ, "1}\r\n");
+		else
+			strcat(answ, "0}\r\n");
+
 		if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
 			log_local("TERMO: Fail sending answ to server", LOG_ERROR);
 			return;
@@ -460,6 +465,24 @@ static void call_termo_module(const char *command, struct tcp_client *restrict c
 		return;
 	}
 	strcpy(mode, params);
+
+	if (!strcmp(func, "termo_set_temp")) {
+		float new_temp;
+		sscanf(mode, "%.1f", &new_temp);
+
+		if (!house_termo_set_temp(new_temp)) {
+			log_local("Fail sending TERMO_SET_TEMP command", LOG_ERROR);
+			strcpy(answ, "HTTP/1.1 200 OK\r\n"
+					"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+					"{\"result\": \"fail\"}\r\n");
+			if (!tcp_client_send(client, (const void *)answ, strlen(answ))) {
+				log_local("TERMO: Fail sending answ to server", LOG_ERROR);
+				return;
+			}
+			return;
+		}
+		return;
+	}
 
 	if (!strcmp(func, "termo_control")) {
 		if (!strcmp(mode, "on")) {
