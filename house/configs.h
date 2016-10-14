@@ -92,37 +92,60 @@ struct termo_cfg {
 };
 
 /*
- * Get termo control configs
+ * Termocontrol configs
  */
 struct termo_cfg *configs_get_termo(void);
 
+
+struct termo_ext_cfg {	
+	unsigned last_state;
+	float temp;
+};
+
 /**
  * Loading termo configs from file to RAM
+ * @tc: termo config struct
  * @filename: name of termo configs file
  *
  * returns error codes: if fail loading
  * returns CFG_OK: if succeful loading
  */
-uint8_t configs_termo_load(const char *filename);
+uint8_t configs_termo_load(struct termo_ext_cfg *tc, const char *filename);
 
 /**
- * Saving termo configs to file from RAM
+ * Saving termo configs from file to RAM
+ * @tc: termo config struct
  * @filename: name of termo configs file
  *
  * returns error codes: if fail loading
- * returns CFG_OK: if succeful saved
+ * returns CFG_OK: if succeful loading
  */
-uint8_t configs_termo_save(const char *filename);
+uint8_t configs_termo_save(struct termo_ext_cfg *tc, const char *filename);
 
-/*
- * Set termocontrol temperature
- */
-void configs_termo_set_temp(const float temp);
 
-/*
- * Set termocontrol temperature
+struct security_ext_cfg {
+	unsigned last_state;
+};
+
+/**
+ * Loading security configs from file to RAM
+ * @sc: security config struct
+ * @filename: name of security configs file
+ *
+ * returns error codes: if fail loading
+ * returns CFG_OK: if succeful loading
  */
-float configs_termo_get_temp(void);
+uint8_t configs_security_load(struct security_ext_cfg *sc, const char *filename);
+
+/**
+ * Saving security configs from file to RAM
+ * @sc: security config struct
+ * @filename: name of security configs file
+ *
+ * returns error codes: if fail loading
+ * returns CFG_OK: if succeful loading
+ */
+uint8_t configs_security_save(struct security_ext_cfg *sc, const char *filename);
 
 
 #endif

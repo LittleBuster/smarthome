@@ -22,33 +22,40 @@
 
 
 static struct {
-	pthread_mutex_t *mutex;
 	pthread_t term_th;
+
 	bool status;
+	bool warm_status;
+
+	struct termo_ext_cfg tec;
 } termo = {
-	.status = false
+	.status = false,
+	.warm_status = false
 };
 
 
 static void *termo_thread(void *data)
 {
+	const struct termo_cfg *tc = configs_get_termo();
+
 	for (;;) {
 		if (termo.status) {
-			float max_temp;
-			float cur_temp, cur_hum;
-			const struct termo_cfg *tc = configs_get_termo();
+			float cur_temp, cur_hum;			
 
 			meteo_get_room_data(&cur_temp, &cur_hum);
-			max_temp = configs_termo_get_temp();
 
-			if (cur_temp <= (max_temp-0.5))
+			if (cur_temp <= (termo.tec.temp - 0.5)) {
 				digitalWrite(tc->tpin, LOW);
+				termo.warm_status = true;
+			}
 
-			if (cur_temp >= (max_temp+0.5))
+			if (cur_temp >= (termo.tec.temp + 0.5)) {
 				digitalWrite(tc->tpin, HIGH);
+				termo.warm_status = false;
+			}
 		} else {
-			const struct termo_cfg *tc = configs_get_termo();
 			digitalWrite(tc->tpin, HIGH);
+			termo.warm_status = false;
 		}
 
 		delay(1000);
@@ -57,31 +64,29 @@ static void *termo_thread(void *data)
 }
 
 
-void termo_start(pthread_mutex_t *mutex)
+bool termo_start(void)
 {
 	const struct termo_cfg *tc = configs_get_termo();
 
 	pinMode(tc->tpin, OUTPUT);
 
-	termo.mutex = mutex;
+	if (configs_termo_load(&termo.tec, PATH_TERMO_EXT) != CFG_OK)
+		return false;
 
 	pthread_create(&termo.term_th, NULL, &termo_thread, NULL);
 	pthread_detach(termo.term_th);
 	puts("Starting termo control...");
+	return true;
 }
 
 void termo_control_on(void)
 {
-	pthread_mutex_lock(termo.mutex);
 	termo.status = true;
-	pthread_mutex_unlock(termo.mutex);
 }
 
 void termo_control_off(void)
 {
-	pthread_mutex_lock(termo.mutex);
 	termo.status = false;
-	pthread_mutex_unlock(termo.mutex);
 }
 
 void termo_get_status(uint8_t *status)
@@ -91,5 +96,5 @@ void termo_get_status(uint8_t *status)
 
 void termo_get_temp(float *temp)
 {
-	*temp = configs_termo_get_temp();	
+	*temp = termo.tec.temp;	
 }

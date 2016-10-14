@@ -14,9 +14,10 @@
 
 
 #define PATH_LOG "/var/log/house.log"
-#define PATH_CONF "/etc/house.conf"
-#define PATH_METEO "/etc/meteo.db"
-#define PATH_HOUSE "/etc/house.db"
+#define PATH_CONF "/etc/house.d/house.conf"
+#define PATH_METEO "/etc/house.d/meteo.db"
+#define PATH_TERMO_EXT "/etc/house.d/termo.conf"
+#define PATH_SECURITY_EXT "/etc/house.d/security.conf"
 
 
 #endif

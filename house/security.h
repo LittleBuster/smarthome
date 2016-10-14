@@ -13,12 +13,13 @@
 #define __SECURITY_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <pthread.h>
 
 /*
  * Starting security module
  */
-void security_start(pthread_mutex_t *mutex);
+bool security_start(void);
 
 /*
  * On security

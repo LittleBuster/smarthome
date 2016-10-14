@@ -13,11 +13,12 @@
 #define __TERMO_H__
 
 #include <pthread.h>
+#include <stdbool.h>
 
 /*
  * Starting termo control module
  */
-void termo_start(pthread_mutex_t *mutex);
+bool termo_start(void);
 
 /*
  * Termo control on

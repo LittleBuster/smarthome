@@ -261,21 +261,24 @@ struct meteo_cfg *configs_get_meteo(void)
 	return &cfg.meteo;
 }
 
-/*
- * Termo configs
- */
-static struct {
-	float temp;
-} tcfg;
 
-
-static bool configs_write_float(FILE *restrict file, const char *param, const float value)
+static bool configs_write_float(FILE *file, const char *param, const float value)
 {
-	fprintf(file, "%s = %.2f\n", param, value);
-	return true;
+    fprintf(file, "%s = %.2f\n", param, value);
+    return true;
 }
 
-uint8_t configs_termo_load(const char *filename)
+static bool configs_write_unsigned(FILE *file, const char *param, const float value)
+{
+    fprintf(file, "%s = %u\n", param, value);
+    return true;
+}
+
+
+/*
+ * Termo extended configs
+ */
+uint8_t configs_termo_load(struct termo_ext_cfg *tc, const char *filename)
 {
     FILE *file;
 
@@ -283,7 +286,11 @@ uint8_t configs_termo_load(const char *filename)
     if (file == NULL)
         return CFG_FILE_NOT_FOUND;
 
-    if (!configs_read_float(file, &tcfg.temp)) {
+    if (!configs_read_unsigned(file, &tc.last_state)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_float(file, &tc.temp)) {
         fclose(file);
         return CFG_PARSE_ERR;
     }
@@ -291,7 +298,7 @@ uint8_t configs_termo_load(const char *filename)
     return CFG_OK;
 }
 
-uint8_t configs_termo_save(const char *filename)
+uint8_t configs_termo_save(struct termo_ext_cfg *tc, const char *filename)
 {
     FILE *file;
 
@@ -299,7 +306,13 @@ uint8_t configs_termo_save(const char *filename)
     if (file == NULL)
         return CFG_FILE_BUSY;
 
-    if (!configs_write_float(file, "termo_temp", tcfg.temp)) {
+    fputs("*********************************\n*\n* Termocontrol extended configs\n*\n"
+          "*********************************\n\n", file);
+    if (!configs_write_unsigned(file, "last_state", tc.temp)) {
+        fclose(file);
+        return CFG_WRITE_ERR;
+    }
+    if (!configs_write_float(file, "temp", tc.temp)) {
         fclose(file);
         return CFG_WRITE_ERR;
     }
@@ -307,12 +320,39 @@ uint8_t configs_termo_save(const char *filename)
     return CFG_OK;
 }
 
-void configs_termo_set_temp(const float temp)
+/*
+ * Security extended configs
+ */
+uint8_t configs_security_load(struct security_ext_cfg *sc, const char *filename)
 {
-	tcfg.temp = temp;	
+    FILE *file;
+
+    file = fopen(filename, "r");
+    if (file == NULL)
+        return CFG_FILE_NOT_FOUND;
+
+    if (!configs_read_unsigned(file, &sc.last_state)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    fclose(file);
+    return CFG_OK;
 }
 
-float configs_termo_get_temp(void)
+uint8_t configs_security_save(struct security_ext_cfg *sc, const char *filename)
 {
-	return tcfg.temp;	
+    FILE *file;
+
+    file = fopen(filename, "w");
+    if (file == NULL)
+        return CFG_FILE_BUSY;
+
+    fputs("*********************************\n*\n* Security extended configs\n*\n"
+          "*********************************\n\n", file);
+    if (!configs_write_unsigned(file, "last_state", sc.temp)) {
+        fclose(file);
+        return CFG_WRITE_ERR;
+    }
+    fclose(file);
+    return CFG_OK;
 }

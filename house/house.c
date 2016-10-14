@@ -162,9 +162,14 @@ bool house_server_start(void)
 		return false;
 	}
 	meteo_sensors_start_timer(&house.mutex);
-	security_start(&house.mutex);
-	termo_start(&house.mutex);
-
+	if (!security_start()) {
+		log_local("Fail loading security extended configs.", LOG_ERROR);
+		return false;
+	}
+	if (!termo_start()) {
+		log_local("Fail loading termo extended configs.", LOG_ERROR);
+		return false;
+	}
 	/*
 	 * TCP server init
 	 */

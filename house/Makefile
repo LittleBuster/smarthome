@@ -55,12 +55,13 @@ mlist.o: mlist.c
 	$(CC) -c mlist.c $(CFLAGS)
 
 install:
-	cp house.conf /etc/
-	cp house.service /etc/systemd/system/
+	-mkdir /etc/house.d/
+	-cp *.conf /etc/house.d/
+	-cp house.service /etc/systemd/system/
 
 remove:
-	rm /etc/house.conf
-	rm /etc/systemd/system/house.service
+	-rm -rf /etc/house.d/
+	-rm /etc/systemd/system/house.service
 
 clean:
 	-rm house
