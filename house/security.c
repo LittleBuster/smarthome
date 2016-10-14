@@ -12,6 +12,7 @@
 #include "security.h"
 #include "configs.h"
 #include "log.h"
+#include "path.h"
 #include "tcpclient.h"
 #include <wiringPi.h>
 #include <stdio.h>
@@ -133,7 +134,7 @@ bool security_start(void)
 {
 	const struct security_cfg *sc = configs_get_security();
 
-	if (configs_termo_load(&security.sec, PATH_SECURITY_EXT) != CFG_OK)
+	if (configs_security_load(&security.sec, PATH_SECURITY_EXT) != CFG_OK)
 		return false;
 
 	pinMode(sc->move, INPUT);
@@ -147,6 +148,7 @@ bool security_start(void)
 	pthread_create(&security.sec_th, NULL, &security_thread, (void *)sc);
 	pthread_detach(security.sec_th);
 	puts("Starting security module...");
+	return true;
 }
 
 void security_set_on(void)

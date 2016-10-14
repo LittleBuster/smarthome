@@ -12,6 +12,7 @@
 #include "configs.h"
 #include "log.h"
 #include "tcpclient.h"
+#include "path.h"
 #include "termo.h"
 #include "meteo.h"
 #include <wiringPi.h>

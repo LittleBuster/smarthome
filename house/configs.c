@@ -268,7 +268,7 @@ static bool configs_write_float(FILE *file, const char *param, const float value
     return true;
 }
 
-static bool configs_write_unsigned(FILE *file, const char *param, const float value)
+static bool configs_write_unsigned(FILE *file, const char *param, const unsigned value)
 {
     fprintf(file, "%s = %u\n", param, value);
     return true;
@@ -286,11 +286,11 @@ uint8_t configs_termo_load(struct termo_ext_cfg *tc, const char *filename)
     if (file == NULL)
         return CFG_FILE_NOT_FOUND;
 
-    if (!configs_read_unsigned(file, &tc.last_state)) {
+    if (!configs_read_unsigned(file, &tc->last_state)) {
         fclose(file);
         return CFG_PARSE_ERR;
     }
-    if (!configs_read_float(file, &tc.temp)) {
+    if (!configs_read_float(file, &tc->temp)) {
         fclose(file);
         return CFG_PARSE_ERR;
     }
@@ -308,11 +308,11 @@ uint8_t configs_termo_save(struct termo_ext_cfg *tc, const char *filename)
 
     fputs("*********************************\n*\n* Termocontrol extended configs\n*\n"
           "*********************************\n\n", file);
-    if (!configs_write_unsigned(file, "last_state", tc.temp)) {
+    if (!configs_write_unsigned(file, "last_state", tc->temp)) {
         fclose(file);
         return CFG_WRITE_ERR;
     }
-    if (!configs_write_float(file, "temp", tc.temp)) {
+    if (!configs_write_float(file, "temp", tc->temp)) {
         fclose(file);
         return CFG_WRITE_ERR;
     }
@@ -331,7 +331,7 @@ uint8_t configs_security_load(struct security_ext_cfg *sc, const char *filename)
     if (file == NULL)
         return CFG_FILE_NOT_FOUND;
 
-    if (!configs_read_unsigned(file, &sc.last_state)) {
+    if (!configs_read_unsigned(file, &sc->last_state)) {
         fclose(file);
         return CFG_PARSE_ERR;
     }
@@ -349,7 +349,7 @@ uint8_t configs_security_save(struct security_ext_cfg *sc, const char *filename)
 
     fputs("*********************************\n*\n* Security extended configs\n*\n"
           "*********************************\n\n", file);
-    if (!configs_write_unsigned(file, "last_state", sc.temp)) {
+    if (!configs_write_unsigned(file, "last_state", sc->last_state)) {
         fclose(file);
         return CFG_WRITE_ERR;
     }
