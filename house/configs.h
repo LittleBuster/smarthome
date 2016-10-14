@@ -98,7 +98,8 @@ struct termo_cfg *configs_get_termo(void);
 
 
 struct termo_ext_cfg {	
-	unsigned last_state;
+	unsigned last_status;
+	unsigned heater_status;
 	float temp;
 };
 
@@ -124,7 +125,7 @@ uint8_t configs_termo_save(struct termo_ext_cfg *tc, const char *filename);
 
 
 struct security_ext_cfg {
-	unsigned last_state;
+	unsigned last_status;
 };
 
 /**

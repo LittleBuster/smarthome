@@ -96,7 +96,7 @@ bool termo_set_temp(float temp)
 	return true;
 }
 
-void termo_get_status(uint8_t *status, uint8_t heater_status)
+void termo_get_status(uint8_t *status, uint8_t *heater_status)
 {
 	*status = termo.tec.last_status;
 	*heater_status = termo.tec.heater_status;

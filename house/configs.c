@@ -286,7 +286,11 @@ uint8_t configs_termo_load(struct termo_ext_cfg *tc, const char *filename)
     if (file == NULL)
         return CFG_FILE_NOT_FOUND;
 
-    if (!configs_read_unsigned(file, &tc->last_state)) {
+    if (!configs_read_unsigned(file, &tc->last_status)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_unsigned(file, &tc->heater_status)) {
         fclose(file);
         return CFG_PARSE_ERR;
     }
@@ -308,7 +312,11 @@ uint8_t configs_termo_save(struct termo_ext_cfg *tc, const char *filename)
 
     fputs("*********************************\n*\n* Termocontrol extended configs\n*\n"
           "*********************************\n\n", file);
-    if (!configs_write_unsigned(file, "last_state", tc->temp)) {
+    if (!configs_write_unsigned(file, "last_status", tc->last_status)) {
+        fclose(file);
+        return CFG_WRITE_ERR;
+    }
+    if (!configs_write_unsigned(file, "heater_status", tc->heater_status)) {
         fclose(file);
         return CFG_WRITE_ERR;
     }
@@ -331,7 +339,7 @@ uint8_t configs_security_load(struct security_ext_cfg *sc, const char *filename)
     if (file == NULL)
         return CFG_FILE_NOT_FOUND;
 
-    if (!configs_read_unsigned(file, &sc->last_state)) {
+    if (!configs_read_unsigned(file, &sc->last_status)) {
         fclose(file);
         return CFG_PARSE_ERR;
     }
@@ -349,7 +357,7 @@ uint8_t configs_security_save(struct security_ext_cfg *sc, const char *filename)
 
     fputs("*********************************\n*\n* Security extended configs\n*\n"
           "*********************************\n\n", file);
-    if (!configs_write_unsigned(file, "last_state", sc->last_state)) {
+    if (!configs_write_unsigned(file, "last_status", sc->last_status)) {
         fclose(file);
         return CFG_WRITE_ERR;
     }
