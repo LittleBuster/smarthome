@@ -15,36 +15,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define HL_LAMPS 2
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * Setting log path for street light module
- * @filename: path to log file
- *
- * returns false: if path is to long
- * returns true: if ok
- */
-bool hlight_set_log(const char *filename);
-
-
-enum hl_cfg_err {
-	HL_CFG_FILE_NOT_FOUND,
-	HL_CFG_PARSE_ERR,
-	HL_CFG_OK
-};
-
-/**
- * Loading configs ot street light module
- * @filename: path to configs file
- *
- * returns CFG_OK: if reading ok
- * returns cfg_err codes: if fail reading
- */
-uint8_t hlight_load_configs(const char *filename);
+#define HL_LAMPS 2
 
 /**
  * Switch on lamp
@@ -53,7 +28,7 @@ uint8_t hlight_load_configs(const char *filename);
  * returns false: if fail sending switch on cmd
  * returns true: if ok
  */
-bool hlight_switch_on(unsigned lamp);
+bool hlight_switch_on(uint8_t lamp);
 
 /**
  * Switch off lamp
@@ -62,11 +37,11 @@ bool hlight_switch_on(unsigned lamp);
  * returns false: if fail sending switch off cmd
  * returns true: if ok
  */
-bool hlight_switch_off(unsigned lamp);
+bool hlight_switch_off(uint8_t lamp);
 
 
 struct hl_status_data {
-	unsigned lamps[HL_LAMPS]; 
+	uint8_t lamps[HL_LAMPS]; 
 };
 
 /**

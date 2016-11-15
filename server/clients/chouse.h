@@ -9,8 +9,8 @@
  * of the Licence, or (at your option) any later version.
  */
 
-#ifndef __HOUSE_H__
-#define __HOUSE_H__
+#ifndef __CLIENT_HOUSE_H__
+#define __CLIENT_HOUSE_H__
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -20,38 +20,13 @@ extern "C" {
 #endif
 
 /**
- * Setting log path for house module
- * @filename: path to log file
- *
- * returns false: if path is to long
- * returns true: if ok
- */
-bool house_set_log(const char *filename);
-
-
-enum house_error_codes {
-    HOUSE_CFG_FILE_NOT_FOUND,
-    HOUSE_CFG_PARSE_ERR,
-    HOUSE_CFG_OK
-};
-
-/**
- * Loading configs of house module
- * @filename: path to configs file
- *
- * returns CFG_OK: if reading ok
- * returns cfg_err codes: if fail reading
- */
-uint8_t house_load_configs(const char *filename);
-
-/**
  * Getting photo from camera
- * @house_num: number of houseera
+ * @num: number of houseera
  *
  * returns true: if getting photo ok
  * returns false: if fail getting photo
  */
-bool house_cam_get_photo(uint8_t house_num);
+bool cam_get_photo(uint8_t num);
 
 /**
  * Getting meteo data array
@@ -67,17 +42,17 @@ bool house_cam_get_photo(uint8_t house_num);
  * returns true: if getting photo ok
  * returns false: if fail getting photo
  */
-bool house_meteo_get_data(float *out_meteo);
+bool meteo_get_data(float *out_meteo);
 
 /*
  * Start termo control timer
  */
-bool house_termo_control_on(void);
+bool termo_control_on(void);
 
 /*
  * Stop termo control timer
  */
-bool house_termo_control_off(void);
+bool termo_control_off(void);
 
 /**
  * Get termo max temperature
@@ -86,7 +61,7 @@ bool house_termo_control_off(void);
  * returns true: if ok
  * returns false: if fail getting
  */
-bool house_termo_get_temp(float *temp);
+bool termo_get_temp(float *temp);
 
 /**
  * Seting termo max temperature
@@ -95,7 +70,7 @@ bool house_termo_get_temp(float *temp);
  * returns true: if ok
  * returns false: if fail getting
  */
-bool house_termo_set_temp(float temp);
+bool termo_set_temp(float temp);
 
 /*
  * Get termo status
@@ -103,7 +78,7 @@ bool house_termo_set_temp(float temp);
  * returns true: if ok
  * returns false: if fail getting
  */
-bool house_termo_get_status(uint8_t *status, uint8_t heater_status);
+bool termo_get_status(uint8_t *status, uint8_t *heater_status);
 
 /*
  * Security module ON
@@ -111,7 +86,7 @@ bool house_termo_get_status(uint8_t *status, uint8_t heater_status);
  * returns true: if ok
  * returns false: if fail
  */
-bool house_security_set_on(void);
+bool security_set_on(void);
 
 /*
  * Security module OFF
@@ -119,7 +94,7 @@ bool house_security_set_on(void);
  * returns true: if ok
  * returns false: if fail
  */
-bool house_security_set_off(void);
+bool security_set_off(void);
 
 /**
  * Getting status of security
@@ -128,7 +103,7 @@ bool house_security_set_off(void);
  * returns true: if ok
  * returns false: if fail
  */
-bool house_security_get_status(uint8_t *status);
+bool security_get_status(uint8_t *status);
 
 
 #ifdef __cplusplus

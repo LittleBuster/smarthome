@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "stlight.h"
+#include "cstlight.h"
 #include "configs.h"
 #include "tcpclient.h"
 #include "log.h"
@@ -26,7 +26,7 @@ enum {
 
 struct command {
 	uint8_t code;
-	unsigned lamp;
+	uint8_t lamp;
 };
 
 struct switch_answ {
@@ -34,31 +34,21 @@ struct switch_answ {
 };
 
 
-bool stlight_set_log(const char *filename)
-{
-	return st_log_set_path(filename);
-}
-
-uint8_t stlight_load_configs(const char *filename)
-{
-	return st_configs_load(filename);
-}
-
-bool stlight_switch_on(unsigned lamp)
+bool stlight_switch_on(uint8_t lamp)
 {
 	struct tcp_client client;
 	struct command cmd;
-	struct server_cfg *sc = st_configs_get_server();
+	const struct module_cfg *sc = configs_get_stlight();
 
 	cmd.code = SWITCH_ON;
 	cmd.lamp = lamp;
 
 	if(!tcp_client_connect(&client, sc->ip, sc->port)) {
-		st_log_local("Fail connecting to server.", ST_LOG_ERROR);
+		log_local("Fail connecting to server.", LOG_ERROR);
 		return false;
 	}
 	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
-		st_log_local("Fail sending cmd to server.", ST_LOG_ERROR);
+		log_local("Fail sending cmd to server.", LOG_ERROR);
 		tcp_client_close(&client);
 		return false;
 	}
@@ -66,21 +56,21 @@ bool stlight_switch_on(unsigned lamp)
 	return true;
 }
 
-bool stlight_switch_off(unsigned lamp)
+bool stlight_switch_off(uint8_t lamp)
 {
 	struct tcp_client client;
 	struct command cmd;
-	struct server_cfg *sc = st_configs_get_server();
+	const struct module_cfg *sc = configs_get_stlight();
 
 	cmd.code = SWITCH_OFF;
 	cmd.lamp = lamp;
 
 	if(!tcp_client_connect(&client, sc->ip, sc->port)) {
-		st_log_local("Fail connecting to server.", ST_LOG_ERROR);
+		log_local("Fail connecting to server.", LOG_ERROR);
 		return false;
 	}
 	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
-		st_log_local("Fail sending cmd to server.", ST_LOG_ERROR);
+		log_local("Fail sending cmd to server.", LOG_ERROR);
 		tcp_client_close(&client);
 		return false;
 	}
@@ -92,21 +82,21 @@ bool stlight_get_status(struct status_data *restrict status)
 {
 	struct tcp_client client;
 	struct command cmd;
-	struct server_cfg *sc = st_configs_get_server();
+	const struct module_cfg *sc = configs_get_stlight();
 
 	cmd.code = GET_STATUS;
 
 	if(!tcp_client_connect(&client, sc->ip, sc->port)) {
-		st_log_local("Fail connecting to server.", ST_LOG_ERROR);
+		log_local("Fail connecting to server.", LOG_ERROR);
 		return false;
 	}
 	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
-		st_log_local("Fail sending cmd to server.", ST_LOG_ERROR);
+		log_local("Fail sending cmd to server.", LOG_ERROR);
 		tcp_client_close(&client);
 		return false;
 	}
 	if (!tcp_client_recv(&client, status, sizeof(struct status_data))) {
-		st_log_local("Fail receiving answ from server.", ST_LOG_ERROR);
+		log_local("Fail receiving answ from server.", LOG_ERROR);
 		tcp_client_close(&client);
 		return false;
 	}
@@ -118,21 +108,21 @@ bool stlight_set_status(const struct status_data *restrict status)
 {
 	struct tcp_client client;
 	struct command cmd;
-	struct server_cfg *sc = st_configs_get_server();
+	const struct module_cfg *sc = configs_get_stlight();
 
 	cmd.code = SET_STATUS;
 
 	if(!tcp_client_connect(&client, sc->ip, sc->port)) {
-		st_log_local("Fail connecting to server.", ST_LOG_ERROR);
+		log_local("Fail connecting to server.", LOG_ERROR);
 		return false;
 	}
 	if (!tcp_client_send(&client, &cmd, sizeof(struct command))) {
-		st_log_local("Fail sending cmd to server.", ST_LOG_ERROR);
+		log_local("Fail sending cmd to server.", LOG_ERROR);
 		tcp_client_close(&client);
 		return false;
 	}
 	if (!tcp_client_send(&client, status, sizeof(struct status_data))) {
-		st_log_local("Fail sending status to server.", ST_LOG_ERROR);
+		log_local("Fail sending status to server.", LOG_ERROR);
 		tcp_client_close(&client);
 		return false;
 	}

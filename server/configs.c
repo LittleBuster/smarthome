@@ -23,6 +23,9 @@ enum {
 
 static struct {
     struct server_cfg sc;
+    struct module_cfg stc;
+    struct module_cfg hc;
+    struct module_cfg hsc;
 } server_cfg;
 
 
@@ -112,6 +115,22 @@ static bool configs_read_unsigned(FILE *restrict file, unsigned *out)
     return true;
 }
 
+static bool configs_read_string(FILE *restrict file, char *out, size_t sz)
+{
+    bool is_ok = false;
+    char data[255];
+
+    while (!feof(file)) {
+        if (fgets(data, 255, file) == NULL)
+            return false;
+        if (parse_string(data, out, sz))
+            return true;
+    }
+    if (!is_ok)
+        return false;
+    return true;
+}
+
 /*
  * Loading configs from file
  */
@@ -131,6 +150,30 @@ uint8_t configs_load(const char *filename)
         fclose(file);
         return CFG_PARSE_ERR;
     }
+    if (!configs_read_string(file, &server_cfg.stc.ip, 16)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_unsigned(file, &server_cfg.stc.port)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_string(file, &server_cfg.hc.ip, 16)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_unsigned(file, &server_cfg.hc.port)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_string(file, &server_cfg.hsc.ip, 16)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
+    if (!configs_read_unsigned(file, &server_cfg.hsc.port)) {
+        fclose(file);
+        return CFG_PARSE_ERR;
+    }
     fclose(file);
     return CFG_OK;
 }
@@ -138,4 +181,19 @@ uint8_t configs_load(const char *filename)
 struct server_cfg *configs_get_server(void)
 {
     return &server_cfg.sc;
+}
+
+struct module_cfg *configs_get_stlight(void)
+{
+    return &server_cfg.stc;
+}
+
+struct module_cfg *configs_get_hlight(void)
+{
+    return &server_cfg.hc;
+}
+
+struct module_cfg *configs_get_house(void)
+{
+    return &server_cfg.hsc;
 }

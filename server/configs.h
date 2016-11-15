@@ -42,4 +42,25 @@ struct server_cfg {
 struct server_cfg *configs_get_server(void);
 
 
+struct module_cfg {
+	char ip[16];
+	unsigned port;
+};
+
+/*
+ * Get server stlight configs
+ */
+struct module_cfg *configs_get_stlight(void);
+
+/*
+ * Get server hlight configs
+ */
+struct module_cfg *configs_get_hlight(void);
+
+/*
+ * Get server house configs
+ */
+struct module_cfg *configs_get_house(void);
+
+
 #endif

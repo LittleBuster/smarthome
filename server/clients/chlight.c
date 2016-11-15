@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "hlight.h"
+#include "chlight.h"
 #include "configs.h"
 #include "tcpclient.h"
 #include "log.h"
@@ -26,7 +26,7 @@ enum {
 
 struct command {
 	uint8_t code;
-	unsigned lamp;
+	uint8_t lamp;
 };
 
 struct switch_answ {
@@ -36,29 +36,29 @@ struct switch_answ {
 
 bool hlight_set_log(const char *filename)
 {
-	return hl_log_set_path(filename);
+	return log_set_path(filename);
 }
 
 uint8_t hlight_load_configs(const char *filename)
 {
-	return hl_configs_load(filename);
+	return configs_load(filename);
 }
 
-bool hlight_switch_on(unsigned lamp)
+bool hlight_switch_on(uint8_t lamp)
 {
 	struct tcp_client client;
 	struct command cmd;
-	const struct server_cfg *sc = hl_configs_get_server();
+	const struct module_cfg *hc = configs_get_hlight();
 
 	cmd.code = SWITCH_ON;
 	cmd.lamp = lamp;
 
-	if(!tcp_client_connect(&client, sc->ip, sc->port)) {
-		hl_log_local("Fail connecting to server.", HL_LOG_ERROR);
+	if(!tcp_client_connect(&client, hc->ip, hc->port)) {
+		log_local("[HLIGHT] Fail connecting to server.", LOG_ERROR);
 		return false;
 	}
 	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
-		hl_log_local("Fail sending cmd to server.", HL_LOG_ERROR);
+		log_local("[HLIGHT] Fail sending cmd to server.", LOG_ERROR);
 		tcp_client_close(&client);
 		return false;
 	}
@@ -66,21 +66,21 @@ bool hlight_switch_on(unsigned lamp)
 	return true;
 }
 
-bool hlight_switch_off(unsigned lamp)
+bool hlight_switch_off(uint8_t lamp)
 {
 	struct tcp_client client;
 	struct command cmd;
-	const struct server_cfg *sc = hl_configs_get_server();
+	const struct module_cfg *hc = configs_get_hlight();
 
 	cmd.code = SWITCH_OFF;
 	cmd.lamp = lamp;
 
-	if(!tcp_client_connect(&client, sc->ip, sc->port)) {
-		hl_log_local("Fail connecting to server.", HL_LOG_ERROR);
+	if(!tcp_client_connect(&client, hc->ip, hc->port)) {
+		log_local("[HLIGHT] Fail connecting to server.", LOG_ERROR);
 		return false;
 	}
 	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
-		hl_log_local("Fail sending cmd to server.", HL_LOG_ERROR);
+		log_local("[HLIGHT] Fail sending cmd to server.", LOG_ERROR);
 		tcp_client_close(&client);
 		return false;
 	}
@@ -92,21 +92,21 @@ bool hlight_get_status(struct hl_status_data *restrict status)
 {
 	struct tcp_client client;
 	struct command cmd;
-	const struct server_cfg *sc = hl_configs_get_server();
+	const struct module_cfg *hc = configs_get_hlight();
 
 	cmd.code = GET_STATUS;
 
-	if(!tcp_client_connect(&client, sc->ip, sc->port)) {
-		hl_log_local("Fail connecting to server.", HL_LOG_ERROR);
+	if(!tcp_client_connect(&client, hc->ip, hc->port)) {
+		log_local("[HLIGHT] Fail connecting to server.", LOG_ERROR);
 		return false;
 	}
 	if (!tcp_client_send(&client, (const void *)&cmd, sizeof(struct command))) {
-		hl_log_local("Fail sending cmd to server.", HL_LOG_ERROR);
+		log_local("[HLIGHT] Fail sending cmd to server.", LOG_ERROR);
 		tcp_client_close(&client);
 		return false;
 	}
 	if (!tcp_client_recv(&client, (void *)status, sizeof(struct hl_status_data))) {
-		hl_log_local("Fail receiving answ from server.", HL_LOG_ERROR);
+		log_local("[HLIGHT] Fail receiving answ from server.", LOG_ERROR);
 		tcp_client_close(&client);
 		return false;
 	}
